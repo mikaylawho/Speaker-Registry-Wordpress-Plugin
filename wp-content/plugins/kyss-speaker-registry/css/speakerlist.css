@@ -1,0 +1,33 @@
+
+ul{
+    vertical-align: top;
+    /*border: solid 1px black;*/ /*this border is only for testing*/
+    width:45%;
+    padding: 0;
+}
+
+ul.speaker-image-buttons{
+    list-style-type: none;
+    text-align: center;
+    float:right;
+}
+
+ul.speaker-image-buttons li{
+    display: inline-block;
+    vertical-align: top;
+}
+
+ul.speaker-text-fields{
+    list-style-type: none;
+    float:left;
+}
+
+li.label{
+
+}
+
+li.info{
+    text-indent: 10px;
+
+}
+

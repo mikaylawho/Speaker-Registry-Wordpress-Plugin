@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<command id="list" name="list">
+  <usage>list [--xml] [--raw] [--format="..."] [namespace]</usage>
+  <description>Lists commands</description>
+  <help>The &lt;info&gt;list&lt;/info&gt; command lists all commands:
+ 
+   &lt;info&gt;php composer.phar list&lt;/info&gt;
+ 
+ You can also display the commands for a specific namespace:
+ 
+   &lt;info&gt;php composer.phar list test&lt;/info&gt;
+ 
+ You can also output the information in other formats by using the &lt;comment&gt;--format&lt;/comment&gt; option:
+ 
+   &lt;info&gt;php composer.phar list --format=xml&lt;/info&gt;
+ 
+ It's also possible to get raw list of commands (useful for embedding command runner):
+ 
+   &lt;info&gt;php composer.phar list --raw&lt;/info&gt;</help>
+  <aliases/>
+  <arguments>
+    <argument name="namespace" is_required="0" is_array="0">
+      <description>The namespace name</description>
+      <defaults/>
+    </argument>
+  </arguments>
+  <options>
+    <option name="--xml" shortcut="" accept_value="0" is_value_required="0" is_multiple="0">
+      <description>To output list as XML</description>
+    </option>
+    <option name="--raw" shortcut="" accept_value="0" is_value_required="0" is_multiple="0">
+      <description>To output raw command list</description>
+    </option>
+    <option name="--format" shortcut="" accept_value="1" is_value_required="1" is_multiple="0">
+      <description>To output list in other formats</description>
+      <defaults>
+        <default>txt</default>
+      </defaults>
+    </option>
+  </options>
+</command>
