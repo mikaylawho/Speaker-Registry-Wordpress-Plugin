@@ -33,19 +33,14 @@ add_filter( 'archive_template', 'kyss_post_type_template' ) ;
 
 //http://wordpress.stackexchange.com/questions/51022/default-taxonomy-template-in-plugin-override-in-theme
 
-function kyss_topic_type_template(){
-	//$taxonomy_array = array('topics'); //additional plugin-specific taxonomies may be added later
-	//foreach ($taxonomy_array as $taxonomy_single) {
-		//$template = dirname( __FILE__ ) . '/includes/taxonomy-'.$taxonomy_single.'.php';
-	$template = dirname( __FILE__ ) . '/includes/taxonomy_topics.php';
-	//}
+function kyss_topic_type_template($template){
+	if(get_queried_object()->taxonomy == 'topics') {
+		$template = dirname( __FILE__ ) . '/includes/taxonomy_topics.php';
+	}
 	return $template;
 }
 
 add_filter('taxonomy_template','kyss_topic_type_template');
-
-
-
 
 
 if ( ! function_exists('kyss_create_taxonomies') ) {
