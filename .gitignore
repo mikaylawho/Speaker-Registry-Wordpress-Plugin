@@ -1,10 +1,10 @@
 # Created by .gitignore support plugin (hsz.mobi)
 wp-content/plugins/kyss-speaker-registry/vendor
-wp-content/plugins/kyss-speaker-registry/.idea
 wp-content/plugins/kyss-speaker-registry/composer.json
 wp-content/plugins/kyss-speaker-registry/phpunit.phar
 wp-content/plugins/kyss-speaker-registry/composerhelp.xml
 wp-content/themes
+.idea
 wp-admin
 wp-includes
 index.php
@@ -24,3 +24,4 @@ wp-settings.php
 wp-signup.php
 wp-trackback.php
 xmlrpc.php
+.htaccess
