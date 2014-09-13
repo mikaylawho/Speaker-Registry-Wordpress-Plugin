@@ -22,15 +22,29 @@ function kyss_speaker_template($single_template) {
 add_filter( 'single_template', 'kyss_speaker_template' );
 
 function kyss_post_type_template( $archive_template ) {
-	global $post;
 
 	if ( is_post_type_archive ( 'speaker' ) ) {
-		$archive_template = dirname( __FILE__ ) . '/includes/content-speaker.php';
+		$archive_template = dirname( __FILE__ ) . '/includes/archive-speaker.php';
 	}
 	return $archive_template;
 }
 
 add_filter( 'archive_template', 'kyss_post_type_template' ) ;
+
+//http://wordpress.stackexchange.com/questions/51022/default-taxonomy-template-in-plugin-override-in-theme
+
+function kyss_topic_type_template(){
+	//$taxonomy_array = array('topics'); //additional plugin-specific taxonomies may be added later
+	//foreach ($taxonomy_array as $taxonomy_single) {
+		//$template = dirname( __FILE__ ) . '/includes/taxonomy-'.$taxonomy_single.'.php';
+	$template = dirname( __FILE__ ) . '/includes/taxonomy_topics.php';
+	//}
+	return $template;
+}
+
+add_filter('taxonomy_template','kyss_topic_type_template');
+
+
 
 
 
@@ -50,6 +64,7 @@ if ( ! function_exists('kyss_create_taxonomies') ) {
 			'new_item_name'              => __( 'New Topic', 'kyss' ),
 			'separate_items_with_commas' => __( 'Separate topics with commas', '' ),
 			'menu_name'                  => __( 'Topics', 'kyss' ),
+			'slug'                       => __( 'kyss_topics' ),
 		);
 		register_taxonomy( 'topics', 'speaker', array(
 				'hierarchical'      => false,
@@ -96,7 +111,7 @@ if ( ! function_exists('kyss_speakers_post_type') ) {
 			'description'         => __( 'Speakers registered with the speaker registry', 'text_domain' ),
 			'labels'              => $labels,
 			'supports'            => array( 'title', 'editor', 'thumbnail', 'revisions', 'custom-fields', ),
-			'taxonomies'          => array( 'Topics','category'),
+			'taxonomies'          => array( 'Topics'),
 			'hierarchical'        => false,
 			'public'              => true,
 			'show_ui'             => true,
@@ -128,9 +143,9 @@ function kyss_create_topic_metabox($post){?>
 		wp_nonce_field('kyss_metabox_nonce', 'kyss_nonce');
 		//retrieve the metadata values if they exist
 		$kyss_topics = get_post_meta($post -> ID, 'Topics', true ); ?>
-		<label for "kyss_topics">What topics does this speaker talk about?</label>
-		<input type="text" name="kyss_topics" value="
-		<?php echo esc_attr($kyss_topics); ?>" />
+		<label for='kyss_topics'>What are this speaker's topics?
+			<input type="text" name="kyss_topics" value="
+		<?php echo esc_attr($kyss_topics); ?>" /></label>
 	</form>
 <?php }
 
