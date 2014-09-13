@@ -2,7 +2,7 @@
 <?php while ( have_posts() ) : the_post(); ?>
 	<div class="kyss_speaker_search_result">
 		<ul>
-			<li style="display:inline-block;list-style-type: none;padding-right:10px;">
+			<li style="display:inline-block;list-style-type: none;padding-right:10px;vertical-align: bottom">
 				<?php
 				if ( has_post_thumbnail() ) { // check if the post has a Post Thumbnail assigned to it.
 					the_post_thumbnail( 'thumbnail', array('style' => 'float:left;') );
