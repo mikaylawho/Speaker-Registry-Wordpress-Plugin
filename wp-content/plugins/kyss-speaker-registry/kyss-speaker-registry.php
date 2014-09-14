@@ -15,7 +15,7 @@ function kyss_speaker_template($single_template) {
 	global $post;
 
 	if ($post->post_type == 'speaker') {
-		$single_template = dirname( __FILE__ ) . '/includes/single-speaker.php';
+		$single_template = dirname( __FILE__ ) . '/templates/single-speaker.php';
 	}
 	return $single_template;
 }
@@ -24,7 +24,7 @@ add_filter( 'single_template', 'kyss_speaker_template' );
 function kyss_post_type_template( $archive_template ) {
 
 	if ( is_post_type_archive ( 'speaker' ) ) {
-		$archive_template = dirname( __FILE__ ) . '/includes/archive-speaker.php';
+		$archive_template = dirname( __FILE__ ) . '/templates/archive-speaker.php';
 	}
 	return $archive_template;
 }
@@ -35,7 +35,7 @@ add_filter( 'archive_template', 'kyss_post_type_template' ) ;
 
 function kyss_topic_type_template($template){
 	if(get_queried_object()->taxonomy == 'topics') {
-		$template = dirname( __FILE__ ) . '/includes/taxonomy_topics.php';
+		$template = dirname( __FILE__ ) . '/templates/taxonomy_topics.php';
 	}
 	return $template;
 }
