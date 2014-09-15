@@ -12,11 +12,6 @@ get_header(); ?>
 		window.location = '../';
 	}
 
-	function goToRequestForm(){
-		document.getElementById('kyss_request_speaker_form').style.display = 'block';
-		document.location.hash = '#speakerform';
-
-	}
 </script>
 
 <style type="text/css">
@@ -59,11 +54,6 @@ get_header(); ?>
 		padding-top:10px;
 	}
 
-	.kyss_speaker_form_div{
-		display:hidden;
-		float:left;
-		clear:both;
-	}
 
 	/*override of WP image thumbnail style*/
 	img.alignleft.wp-post-image {
@@ -80,15 +70,7 @@ get_header(); ?>
 		<div id="content" role="main">
 			<div id="kyss_speaker_div" class="kyss_speaker_div">
 
-				<?php
-
-				$current_speaker = '';
-
-				while ( have_posts() ) : the_post();
-
-					$current_speaker = get_the_title();
-
-					?>
+				<?php while ( have_posts() ) : the_post() ?>
 
 				<section>
 					<article>
@@ -99,7 +81,11 @@ get_header(); ?>
 							}
 							?>
 							<h1><?php the_title();?></h1>
-							<input value="Request This Speaker" type="button" width="100px" onclick="goToRequestForm();">
+							<!--TODO: set a configuration value in the admin screen for the speaker request page url-->
+							<form action="<?php echo site_url() ?>/speaker-request-form" method="get">
+								<input name="current_speaker" type="hidden" value="<?php echo get_the_title(); ?>">
+								<input value="Request This Speaker" type="submit" width="100px">
+							</form>
 							<input value="View All Speakers" type="button" width="100px" onclick="redirectSpeakerList();">
 						</header>
 							<div class="kyss_speaker_info">
@@ -111,71 +97,14 @@ get_header(); ?>
 									<li class="kyss_info"><?php the_content(); ?></li>
 								</ul>
 
+								<!-- TODO: add additional meta fields for YouTube videos, speaker website, etc.-->
+
 							</div>
 					</article>
 				</section>
 
 				<?php endwhile;
 				?>
-			</div>
-
-			<a name="speakerform"></a>
-			<div id="kyss_request_speaker_form" class="kyss_speaker_form_div" style="display:none;">
-
-				<h3>Request this Speaker</h3>
-
-				<?php
-
-				html_form_code();
-
-				function html_form_code() {
-					echo '<form action="' . esc_url( $_SERVER['REQUEST_URI'] ) . '" method="post">';
-					echo '<p>';
-					echo 'Your Name (required) <br/>';
-					echo '<input type="text" name="cf-name" pattern="[a-zA-Z0-9 ]+" value="' . ( isset( $_POST["cf-name"] ) ? esc_attr( $_POST["cf-name"] ) : '' ) . '" size="40" />';
-					echo '</p>';
-					echo '<p>';
-					echo 'Your Email (required) <br/>';
-					echo '<input type="email" name="cf-email" value="' . ( isset( $_POST["cf-email"] ) ? esc_attr( $_POST["cf-email"] ) : '' ) . '" size="40" />';
-					echo '</p>';
-					echo '<p>';
-					echo 'Your Message (required) <br/>';
-					echo '<textarea rows="10" cols="35" name="cf-message">' . ( isset( $_POST["cf-message"] ) ? esc_attr( $_POST["cf-message"] ) : '' ) . '</textarea>';
-					echo '</p>';
-					echo '<p><input type="submit" name="cf-submitted" value="Send"></p>';
-					echo '</form>';
-				}
-
-				function deliver_mail() {
-					global $current_speaker;
-
-					// if the submit button is clicked, send the email
-					if ( isset( $_POST['cf-submitted'] ) ) {
-
-						// sanitize form values
-						$name    = sanitize_text_field( $_POST["cf-name"] );
-						$email   = sanitize_email( $_POST["cf-email"] );
-						$subject = 'Speaker Request:' . $current_speaker;
-						$message = esc_textarea( $_POST["cf-message"] );
-
-						// get the blog administrator's email address
-						$to = get_option( 'admin_email' );
-
-						$headers = "From: $name <$email>" . "\r\n";
-
-						// If email has been process for sending, display a success message
-						if ( wp_mail( $to, $subject, $message, $headers ) ) {
-							echo '<div>';
-							echo '<p>Thanks for contacting us, expect a response soon.</p>';
-							echo '</div>';
-						} else {
-							echo 'An unexpected error occurred';
-						}
-					}
-				}
-
-				?>
-
 			</div>
 
 

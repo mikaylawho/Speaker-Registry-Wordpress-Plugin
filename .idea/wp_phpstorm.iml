@@ -8,12 +8,10 @@
       <library name="PHARS">
         <CLASSES>
           <root url="phar://$MODULE_DIR$/wp-content/plugins/kyss-speaker-registry/vendor/symfony/dependency-injection/Symfony/Component/DependencyInjection/Tests/Fixtures/includes/ProjectWithXsdExtensionInPhar.phar" />
-          <root url="phar://$MODULE_DIR$/wp-content/plugins/kyss-speaker-registry/composer.phar" />
           <root url="phar://$MODULE_DIR$/wp-content/plugins/kyss-speaker-registry/phpunit.phar" />
         </CLASSES>
         <SOURCES>
           <root url="phar://$MODULE_DIR$/wp-content/plugins/kyss-speaker-registry/vendor/symfony/dependency-injection/Symfony/Component/DependencyInjection/Tests/Fixtures/includes/ProjectWithXsdExtensionInPhar.phar" />
-          <root url="phar://$MODULE_DIR$/wp-content/plugins/kyss-speaker-registry/composer.phar" />
           <root url="phar://$MODULE_DIR$/wp-content/plugins/kyss-speaker-registry/phpunit.phar" />
         </SOURCES>
       </library>
