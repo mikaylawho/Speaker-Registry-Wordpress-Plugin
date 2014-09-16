@@ -96,7 +96,7 @@ if ( ! function_exists('kyss_speakers_post_type') ) {
 			'not_found_in_trash'  => __( 'Not found in Trash', 'text_domain' ),
 		);
 		$rewrite = array(
-			'slug'                => 'kyss',
+			'slug'                => 'kyss_speakers',
 			'with_front'          => true,
 			'pages'               => true,
 			'feeds'               => true,
