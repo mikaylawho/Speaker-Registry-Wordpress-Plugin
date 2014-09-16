@@ -225,4 +225,126 @@ add_shortcode( 'speaker_contact_form', 'cf_shortcode' );
 
 /* end speaker contact form code*/
 
+/* Configuration screen */
 
+class MySettingsPage
+{
+	/**
+	 * Holds the values to be used in the fields callbacks
+	 */
+	private $options;
+
+	/**
+	 * Start up
+	 */
+	public function __construct()
+	{
+		add_action( 'admin_menu', array( $this, 'add_kyss_speaker_registry_page' ) );
+		add_action( 'admin_init', array( $this, 'page_init' ) );
+	}
+
+	/**
+	 * Add options page
+	 */
+	public function add_kyss_speaker_registry_page()
+	{
+		// This page will be under "Settings"
+		add_options_page(
+			'Settings Admin',
+			'Speaker Registry',
+			'manage_options',
+			'kyss-speaker-settings-admin',
+			array( $this, 'create_admin_page' )
+		);
+	}
+
+	/**
+	 * Options page callback
+	 */
+	public function create_admin_page()
+	{
+		?>
+		<div class="wrap">
+			<?php //screen_icon(); ?>
+			<h2>Speaker Registry Settings</h2>
+			<form method="post" action="options.php">
+				<?php
+				// This prints out all hidden setting fields
+				settings_fields( 'kyss_speaker_settings_group' );
+				do_settings_sections( 'kyss-speaker-settings-admin' );
+				submit_button();
+				?>
+			</form>
+		</div>
+	<?php
+	}
+
+	/**
+	 * Register and add settings
+	 */
+	public function page_init()
+	{
+		register_setting(
+			'kyss_speaker_settings_group', // Option group
+			'kyss_speaker_contact_form_url' // Option name
+		);
+
+		add_settings_section(
+			'kyss_speaker_contact_settings', // ID
+			'Speaker Contact Settings', // Title
+			array( $this, 'print_section_info' ), // Callback
+			'kyss-speaker-settings-admin' // Page
+		);
+
+		add_settings_field(
+			'kyss_contact_form_url', // ID
+			'Speaker Contact Form URL', // Title
+			array( $this, 'contact_form_url_callback' ), // Callback
+			'kyss-speaker-settings-admin', // Page
+			'kyss_speaker_contact_settings' // Section
+		);
+
+
+	}
+
+	/**
+	 * Sanitize each setting field as needed
+	 *
+	 * @param array $input Contains all settings fields as array keys
+	 */
+	public function sanitize( $input )
+	{
+		$new_input = array();
+		if( isset( $input['id_number'] ) )
+			$new_input['id_number'] = absint( $input['id_number'] );
+
+		if( isset( $input['title'] ) )
+			$new_input['title'] = sanitize_text_field( $input['title'] );
+
+		return $new_input;
+	}
+
+	/**
+	 * Print the Section text
+	 */
+	public function print_section_info()
+	{
+		print 'Enter your settings below:';
+	}
+
+	/**
+	 * Get the settings option array and print one of its values
+	 */
+    public function contact_form_url_callback()
+	{
+		$setting = get_option( 'kyss_speaker_contact_form_url' );
+		echo "<input type='url' name='kyss_speaker_contact_form_url' value='$setting' />";
+
+	}
+
+}
+
+if( is_admin() )
+	$my_settings_page = new MySettingsPage();
+
+/* End configuration screen */
