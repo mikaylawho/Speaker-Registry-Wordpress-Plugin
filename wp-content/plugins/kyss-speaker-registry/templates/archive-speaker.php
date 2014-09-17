@@ -4,7 +4,9 @@
  *
  */
 
-get_header(); ?>
+get_header();
+$args = array( 'posts_per_page' => -1, 'orderby'=> 'title', 'order' => 'ASC', 'post_type' => 'speaker' );
+?>
 
 <div id="primary" class="site-content">
 	<div id="content" role="main">

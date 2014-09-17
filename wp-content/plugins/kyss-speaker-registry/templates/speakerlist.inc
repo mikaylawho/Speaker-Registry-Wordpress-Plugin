@@ -1,5 +1,8 @@
+<?php
 
-<?php while ( have_posts() ) : the_post(); ?>
+$speakers_abc = get_posts($args); //$args comes from the template that calls the include file
+
+foreach( $speakers_abc as $post ) :	setup_postdata($post); ?>
 	<div class="kyss_speaker_search_result">
 		<ul>
 			<li style="display:inline-block;list-style-type: none;padding-right:10px;vertical-align: bottom">
@@ -23,4 +26,4 @@
 
 		</ul>
 	</div>
-<?php endwhile; ?>
+<?php  endforeach; ?>

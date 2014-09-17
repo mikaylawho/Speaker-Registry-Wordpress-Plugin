@@ -4,7 +4,19 @@
  *
  */
 
-get_header(); ?>
+get_header();
+
+$topic_query = array(
+	array(
+		'taxonomy' => get_queried_object()->taxonomy,
+		'field'    => 'slug',
+		'terms'    => get_queried_object()->name,
+	),
+);
+
+$args = array( 'posts_per_page' => -1, 'orderby'=> 'title', 'order' => 'ASC', 'post_type' => 'speaker', 'tax_query' => $topic_query );
+
+?>
 
 	<style type="text/css">
 
