@@ -10,6 +10,8 @@ Author URI: http://mikelhensley.info
 License: GPL2
 */
 
+/*custom image size for use on the Speaker list page*/
+add_image_size( 'tinythumbnail', 80, 80, true );
 
 function kyss_speaker_template($single_template) {
 	global $post;
@@ -135,6 +137,7 @@ if ( ! function_exists('kyss_speakers_post_type') ) {
 function kyss_create_topic_metabox($post){?>
 	<form action="" method="post" xmlns="http://www.w3.org/1999/html">
 		<?php //add nonce for security
+		//TODO: review and update the nonce
 		wp_nonce_field('kyss_metabox_nonce', 'kyss_nonce');
 		//retrieve the metadata values if they exist
 		$kyss_topics = get_post_meta($post -> ID, 'Topics', true ); ?>
@@ -151,10 +154,6 @@ function kyss_save_topic_meta( $post_id ){
 	if ( isset( $_POST['kyss_topics'] ) ) {
 		$new_topic_value = ( $_POST['kyss_topics'] );
 		update_post_meta( $post_id, 'Topics', $new_topic_value );
-
-		//add Speaker category automatically
-		$category = wp_create_category( 'Speakers' );
-		update_post_meta( $post_id, 'category', $category );
 
 	}
 }
@@ -176,10 +175,16 @@ function html_form_code() {
 	echo '</p>';
 	echo '<p>';
 	echo 'Subject (required) <br/>';
-	echo '<input type="text" readonly name="cf-subject" pattern="[a-zA-Z ]+" value="Speaker Request: ' . $_GET["current_speaker"] . '" size="40" />';
+	echo '<input type="text" readonly name="cf-subject" pattern="[a-zA-Z ]+" value="Speaker Request: ' . ( isset( $_GET["current_speaker"] ) ? $_GET["current_speaker"] : '' ). '" size="40" />';
 	echo '</p>';
 	echo '<p>';
-	echo 'Your Message (required) <br/>';
+	echo 'Your Message (required). Please include the following information:
+			<ul>
+				<li>Title and description of the event where you would like the speaker to speak</li>
+				<li>The event location</li>
+				<li>Date and time</li>
+				<li>What you would like the speaker to talk about</li>
+			</ul>';
 	echo '<textarea rows="10" cols="35" name="cf-message">' . ( isset( $_POST["cf-message"] ) ? esc_attr( $_POST["cf-message"] ) : '' ) . '</textarea>';
 	echo '</p>';
 	echo '<p><input type="submit" name="cf-submitted" value="Send"></p>';
@@ -198,6 +203,7 @@ function deliver_mail() {
 		$message = esc_textarea( $_POST["cf-message"] );
 
 		// get the blog administrator's email address
+		//TODO: include the speaker's email in the TO field if it has been provided.
 		$to = get_option( 'admin_email' );
 
 		$headers = "From: $name <$email>" . "\r\n";
@@ -205,7 +211,7 @@ function deliver_mail() {
 		// If email has been process for sending, display a success message
 		if ( wp_mail( $to, $subject, $message, $headers ) ) {
 			echo '<div>';
-			echo '<p>Thanks for contacting me, expect a response soon.</p>';
+			echo '<p><strong>Thanks for contacting us, we will respond to you as soon as we can.</strong></p>';
 			echo '</div>';
 		} else {
 			echo 'An unexpected error occurred';
@@ -225,7 +231,9 @@ add_shortcode( 'speaker_contact_form', 'cf_shortcode' );
 
 /* end speaker contact form code*/
 
-/* Configuration screen */
+
+
+/* Admin Configuration screen */
 
 class MySettingsPage
 {

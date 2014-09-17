@@ -6,6 +6,12 @@
 
 get_header();
 
+$topics = get_terms( 'topics', array(
+		'orderby'    => 'name',
+		'order'      => 'ASC'
+	)
+);
+
 $topic_query = array(
 	array(
 		'taxonomy' => get_queried_object()->taxonomy,
@@ -35,6 +41,7 @@ $args = array( 'posts_per_page' => -1, 'orderby'=> 'title', 'order' => 'ASC', 'p
 				<article>
 					<header>
 						<h1><?php echo get_queried_object()->taxonomy;?>:&nbsp<?php echo get_queried_object()->name; ?></h1>
+							<?php include 'topic_select.inc' ?>
 						<hr />
 					</header>
 

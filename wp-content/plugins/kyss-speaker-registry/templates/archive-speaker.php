@@ -5,8 +5,10 @@
  */
 
 get_header();
+
 $args = array( 'posts_per_page' => -1, 'orderby'=> 'title', 'order' => 'ASC', 'post_type' => 'speaker' );
 ?>
+
 
 <div id="primary" class="site-content">
 	<div id="content" role="main">
@@ -14,10 +16,11 @@ $args = array( 'posts_per_page' => -1, 'orderby'=> 'title', 'order' => 'ASC', 'p
 			<article>
 				<header>
 					<h1>Speakers</h1>
+					<?php include 'topic_select.inc' ?>
 					<hr />
 				</header>
 
-					<?php include 'speakerlist.inc' ?>
+				<?php include 'speakerlist.inc' ?>
 
 			</article>
 		</section>

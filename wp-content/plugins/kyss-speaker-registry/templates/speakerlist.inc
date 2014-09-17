@@ -1,8 +1,13 @@
 <?php
 
-$speakers_abc = get_posts($args); //$args comes from the template that calls the include file
 
-foreach( $speakers_abc as $post ) :	setup_postdata($post); ?>
+
+$speakers_abc = get_posts($args); //$args comes from the template that calls the include file
+?>
+
+
+<?php
+	foreach( $speakers_abc as $post ) :	setup_postdata($post); ?>
 	<div class="kyss_speaker_search_result">
 		<ul>
 			<li style="display:inline-block;list-style-type: none;padding-right:10px;vertical-align: bottom">
@@ -14,7 +19,7 @@ foreach( $speakers_abc as $post ) :	setup_postdata($post); ?>
 					?>
 					<!-- image placeholder for Speakers with no featured image set. the purpose
 					 for this is to line up the text of the Speaker results even if they do not show an image.-->
-					<div id="placeholder" style="height:150px; width:150px; border:dotted 1px black"></div>
+					<div id="placeholder" style="width:150px;"></div>
 				<?php } ?>
 			</li>
 
