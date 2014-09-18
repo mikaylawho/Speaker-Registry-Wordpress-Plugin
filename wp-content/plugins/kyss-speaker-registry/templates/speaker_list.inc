@@ -1,9 +1,22 @@
 <?php
-
+defined('ABSPATH') or die("No script kiddies please!");
 
 
 $speakers_abc = get_posts($args); //$args comes from the template that calls the include file
 ?>
+
+<style type="text/css">
+
+	/*override of WP image thumbnail style*/
+	img.wp-post-image {
+		margin-top: 0;
+		margin-right: 10px;
+		padding-top: 0;
+		height:80px;
+		width:80px;
+	}
+
+</style>
 
 
 <?php
@@ -19,7 +32,7 @@ $speakers_abc = get_posts($args); //$args comes from the template that calls the
 					?>
 					<!-- image placeholder for Speakers with no featured image set. the purpose
 					 for this is to line up the text of the Speaker results even if they do not show an image.-->
-					<div id="placeholder" style="width:150px;"></div>
+					<div id="placeholder" style="width:80px;"></div>
 				<?php } ?>
 			</li>
 

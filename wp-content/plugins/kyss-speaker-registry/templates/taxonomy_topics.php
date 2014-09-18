@@ -4,6 +4,8 @@
  *
  */
 
+defined('ABSPATH') or die("No script kiddies please!");
+
 get_header();
 
 $topics = get_terms( 'topics', array(
@@ -40,12 +42,13 @@ $args = array( 'posts_per_page' => -1, 'orderby'=> 'title', 'order' => 'ASC', 'p
 			<section>
 				<article>
 					<header>
-						<h1><?php echo get_queried_object()->taxonomy;?>:&nbsp<?php echo get_queried_object()->name; ?></h1>
+						<h1><?php echo get_option( 'kyss_all_speakers_page_header' ) ?>:
+							<?php echo get_queried_object()->name; ?></span></h1>
 							<?php include 'topic_select.inc' ?>
 						<hr />
 					</header>
 
-					<?php include 'speakerlist.inc' ?>
+					<?php include 'speaker_list.inc' ?>
 
 				</article>
 			</section>

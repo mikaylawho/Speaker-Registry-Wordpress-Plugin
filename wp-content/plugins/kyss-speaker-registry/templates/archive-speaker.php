@@ -4,10 +4,13 @@
  *
  */
 
+defined('ABSPATH') or die("No script kiddies please!");
+
 get_header();
 
 $args = array( 'posts_per_page' => -1, 'orderby'=> 'title', 'order' => 'ASC', 'post_type' => 'speaker' );
 ?>
+
 
 
 <div id="primary" class="site-content">
@@ -15,12 +18,12 @@ $args = array( 'posts_per_page' => -1, 'orderby'=> 'title', 'order' => 'ASC', 'p
 		<section>
 			<article>
 				<header>
-					<h1>Speakers</h1>
+					<h1><?php echo get_option( 'kyss_all_speakers_page_header' ) ?></h1>
 					<?php include 'topic_select.inc' ?>
 					<hr />
 				</header>
 
-				<?php include 'speakerlist.inc' ?>
+				<?php include 'speaker_list.inc' ?>
 
 			</article>
 		</section>

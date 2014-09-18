@@ -6,6 +6,7 @@
  * Time: 3:48 PM
  * The Topic Picker code that is used on the Speaker Archive and Topics templates.
  */
+defined('ABSPATH') or die("No script kiddies please!");
 
 $topics = get_terms( 'topics', array(
 		'orderby'    => 'name',

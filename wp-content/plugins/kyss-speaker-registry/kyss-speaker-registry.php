@@ -10,8 +10,9 @@ Author URI: http://mikelhensley.info
 License: GPL2
 */
 
-/*custom image size for use on the Speaker list page*/
-add_image_size( 'tinythumbnail', 80, 80, true );
+defined('ABSPATH') or die("No script kiddies please!");
+
+/*Templates*/
 
 function kyss_speaker_template($single_template) {
 	global $post;
@@ -44,6 +45,7 @@ function kyss_topic_type_template($template){
 
 add_filter('taxonomy_template','kyss_topic_type_template');
 
+/*Custom Taxonomies*/
 
 if ( ! function_exists('kyss_create_taxonomies') ) {
 	//register custom taxonomies
@@ -75,6 +77,8 @@ if ( ! function_exists('kyss_create_taxonomies') ) {
 
 	add_action( 'init', 'kyss_create_taxonomies', 0 );
 }
+
+/*Custom Objects*/
 
 //register custom post type for speakers
 if ( ! function_exists('kyss_speakers_post_type') ) {
@@ -133,34 +137,80 @@ if ( ! function_exists('kyss_speakers_post_type') ) {
 
 }
 
-//Create the editbox for Topics for the Speakers edit page
-function kyss_create_topic_metabox($post){?>
-	<form action="" method="post" xmlns="http://www.w3.org/1999/html">
-		<?php //add nonce for security
-		//TODO: review and update the nonce
-		wp_nonce_field('kyss_metabox_nonce', 'kyss_nonce');
-		//retrieve the metadata values if they exist
-		$kyss_topics = get_post_meta($post -> ID, 'Topics', true ); ?>
-		<label for='kyss_topics'>What are this speaker's topics?
-			<input type="text" name="kyss_topics" value="
-		<?php echo esc_attr($kyss_topics); ?>" /></label>
-	</form>
-<?php }
+/*Custom Taxonomy Metabox*/
 
+if ( ! function_exists('kyss_create_topic_metabox') ) {
+//Create the editbox for Topics for the Speakers edit page
+	function kyss_create_topic_metabox( $post ) {
+		?>
+		<form action="" method="post" xmlns="http://www.w3.org/1999/html">
+			<?php wp_nonce_field( 'kyss_metabox_nonce', 'kyss_nonce' );
+			//retrieve the metadata values if they exist
+			$kyss_topics = get_post_meta( $post->ID, 'Topics', true ); ?>
+			<label for='kyss_topics'>What are this speaker's topics?
+				<input type="text" name="kyss_topics" value="
+		<?php echo esc_attr( $kyss_topics ); ?>"/></label>
+		</form>
+	<?php
+	}
 
 
 //save the metabox data
-function kyss_save_topic_meta( $post_id ){
-	if ( isset( $_POST['kyss_topics'] ) ) {
+	function kyss_save_topic_meta( $post_id ) {
+
+		/*
+		 * We need to verify this came from our screen and with proper authorization,
+		 * because the save_post action can be triggered at other times.
+		 */
+
+		// Check if our nonce is set.
+		if ( ! isset( $_POST['kyss_metabox_nonce'] ) ) {
+			return;
+		}
+
+		// Verify that the nonce is valid.
+		if ( ! wp_verify_nonce( $_POST['kyss_metabox_nonce'], 'kyss_create_topic_metabox' ) ) {
+			return;
+		}
+
+		// If this is an autosave, our form has not been submitted, so we don't want to do anything.
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+			return;
+		}
+
+		// Check the user's permissions.
+		if ( isset( $_POST['post_type'] ) && 'page' == $_POST['post_type'] ) {
+
+			if ( ! current_user_can( 'edit_page', $post_id ) ) {
+				return;
+			}
+
+		} else {
+
+			if ( ! current_user_can( 'edit_post', $post_id ) ) {
+				return;
+			}
+		}
+
+		/* OK, it's safe for us to save the data now. */
+
+		// Make sure that it is set.
+		if ( ! isset( $_POST['kyss_topics'] ) ) {
+			return;
+		}
+
+		// Sanitize user input.
+		$my_data = sanitize_text_field( $_POST['kyss_topics'] );
+
+		// Update the meta field in the database.
 		$new_topic_value = ( $_POST['kyss_topics'] );
 		update_post_meta( $post_id, 'Topics', $new_topic_value );
 
 	}
+
+	add_action( 'save_post', 'kyss_save_topic_meta' );
 }
-
-add_action( 'save_post', 'kyss_save_topic_meta' );
-
-
+/*Speaker Contact form  and shortcode*/
 /* code below adapted from http://www.sitepoint.com/build-your-own-wordpress-contact-form-plugin-in-5-minutes/ */
 
 function html_form_code() {
@@ -237,10 +287,6 @@ add_shortcode( 'speaker_contact_form', 'cf_shortcode' );
 
 class MySettingsPage
 {
-	/**
-	 * Holds the values to be used in the fields callbacks
-	 */
-	private $options;
 
 	/**
 	 * Start up
@@ -273,7 +319,6 @@ class MySettingsPage
 	{
 		?>
 		<div class="wrap">
-			<?php //screen_icon(); ?>
 			<h2>Speaker Registry Settings</h2>
 			<form method="post" action="options.php">
 				<?php
@@ -297,10 +342,15 @@ class MySettingsPage
 			'kyss_speaker_contact_form_url' // Option name
 		);
 
+		register_setting(
+			'kyss_speaker_settings_group', // Option group
+			'kyss_all_speakers_page_header' // Option name
+		);
+
 		add_settings_section(
 			'kyss_speaker_contact_settings', // ID
 			'Speaker Contact Settings', // Title
-			array( $this, 'print_section_info' ), // Callback
+			array( $this, 'print_contact_section_info' ), // Callback
 			'kyss-speaker-settings-admin' // Page
 		);
 
@@ -311,6 +361,24 @@ class MySettingsPage
 			'kyss-speaker-settings-admin', // Page
 			'kyss_speaker_contact_settings' // Section
 		);
+
+
+		add_settings_section(
+			'kyss_speaker_page_settings', // ID
+			'Speaker Registry Page Settings', // Title
+			array( $this, 'print_page_section_info' ), // Callback
+			'kyss-speaker-settings-admin' // Page
+		);
+
+
+		add_settings_field(
+			'kyss_all_speakers_page_header',
+			'All Speakers Page Header', // Title
+			array( $this, 'speaker_list_page_title_callback' ), // Callback
+			'kyss-speaker-settings-admin', // Page
+			'kyss_speaker_page_settings' // Section
+		);
+
 
 
 	}
@@ -335,18 +403,30 @@ class MySettingsPage
 	/**
 	 * Print the Section text
 	 */
-	public function print_section_info()
+	public function print_contact_section_info()
 	{
-		print 'Enter your settings below:';
+		print 'In order to use the "Request this Speaker function on the Speaker pages, you will need to create a page and add the shortcode
+		[speaker_contact_form] in the page content area (include the brackets). This will set up an email form which will notify the site administrator
+		when a speaker has been requested.';
 	}
 
-	/**
-	 * Get the settings option array and print one of its values
-	 */
+	public function print_page_section_info()
+	{
+		print 'Enter the settings for Speaker Registry page displays.';
+	}
+
+
     public function contact_form_url_callback()
 	{
 		$setting = get_option( 'kyss_speaker_contact_form_url' );
 		echo "<input type='url' name='kyss_speaker_contact_form_url' value='$setting' />";
+
+	}
+
+	public function speaker_list_page_title_callback()
+	{
+		$setting = get_option( 'kyss_all_speakers_page_header' );
+		echo "<input type='text' name='kyss_all_speakers_page_header' value='$setting' />";
 
 	}
 

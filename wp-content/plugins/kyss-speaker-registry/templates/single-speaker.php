@@ -3,6 +3,7 @@
  * The Template for displaying all single posts.
  *
  */
+defined('ABSPATH') or die("No script kiddies please!");
 
 get_header(); ?>
 
@@ -20,6 +21,7 @@ get_header(); ?>
 		margin-top:0;
 		padding:0;
 		display:block;
+		align-items: left;
 	}
 
 
@@ -81,7 +83,6 @@ get_header(); ?>
 							}
 							?>
 							<h1><?php the_title();?></h1>
-							<!--TODO: set a configuration value in the admin screen for the speaker request page url-->
 							<form action="<?php echo get_option( 'kyss_speaker_contact_form_url' ) ?>" method="get">
 								<input name="current_speaker" type="hidden" value="<?php echo get_the_title(); ?>">
 								<input value="Request This Speaker" type="submit" width="100px">
