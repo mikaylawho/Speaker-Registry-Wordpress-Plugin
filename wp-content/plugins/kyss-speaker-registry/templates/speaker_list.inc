@@ -16,6 +16,14 @@ $speakers_abc = get_posts($args); //$args comes from the template that calls the
 		width:80px;
 	}
 
+	#content{
+		padding-left:20px;
+		padding-right:20px;
+		padding-bottom:10px;
+		padding-top:10px;
+	}
+
+
 </style>
 
 

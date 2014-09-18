@@ -26,15 +26,7 @@ $args = array( 'posts_per_page' => -1, 'orderby'=> 'title', 'order' => 'ASC', 'p
 
 ?>
 
-	<style type="text/css">
 
-		#content{
-			padding-left:20px;
-			padding-right:20px;
-			padding-bottom:10px;
-			padding-top:10px;
-		}
-	</style>
 
 
 	<div id="primary" class="site-content">
