@@ -83,15 +83,17 @@ get_header(); ?>
 							}
 							?>
 							<h1><?php the_title();?></h1>
-							<input value="View All Events" type="button" width="100px" onclick="redirectSpeakerList();">
+							<form action="<?php echo get_option( 'kyss_speaker_contact_form_url' ) ?>" method="get">
+								<input name="current_speaker" type="hidden" value="<?php echo get_the_title(); ?>">
+								<input value="Request This Speaker" type="submit" width="100px">
+							</form>
+							<input value="View All Speakers" type="button" width="100px" onclick="redirectSpeakerList();">
 						</header>
 							<div class="kyss_speaker_info">
 
 								<ul class="kyss_page">
-									<li class="kyss_label"><h3>Event Details</h3></li>
+									<li class="kyss_label"><h3>Speaker Bio</h3></li>
 									<li class="kyss_info"><?php the_content(); ?></li>
-									<li>the_meta();</li>
-
 								</ul>
 
 								<!-- TODO: add additional meta fields for YouTube videos, speaker website, etc.-->
