@@ -1,4 +1,4 @@
-Speaker-Registry-Wordpress-Plugin
+Speaker Registry Wordpress Plugin
 =================================
 Original development by Mikel Hensley.
 
