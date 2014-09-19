@@ -1,15 +1,16 @@
 # Created by .gitignore support plugin (hsz.mobi)
-wp-content/plugins/kyss-speaker-registry/vendor
-wp-content/plugins/kyss-speaker-registry/composer.json
-wp-content/plugins/kyss-speaker-registry/phpunit.phar
-wp-content/plugins/kyss-speaker-registry/composerhelp.xml
+wp-content/plugins/kyss-speaker-registry 2.zip
+wp-content/plugins/kyss-speaker-registry 3.zip
+wp-content/plugins/kyss-speaker-registry.zip
+wp-content/plugins/kyss-speaker-registry/.gitignore
+wp-content/plugins/test_create_speakers.php
+wp-content/uploads/
 wp-content/themes
 .idea
 wp-admin
 wp-includes
 index.php
 license.txt
-readme.html
 wp-activate.php
 wp-blog-header.php
 wp-comments-post.php
