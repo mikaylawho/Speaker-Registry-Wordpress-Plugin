@@ -90,7 +90,32 @@ get_header(); ?>
 								<ul class="kyss_page">
 									<li class="kyss_label"><h3>Event Details</h3></li>
 									<li class="kyss_info"><?php the_content(); ?></li>
-									<li>the_meta();</li>
+									<li><?php
+
+
+
+										function get_post_meta_all($post_id) {
+											global $wpdb;
+
+											$data = array();
+
+											$wpdb->query( "
+											        SELECT 'meta_key', 'meta_value'
+											        FROM $wpdb->postmeta
+											        WHERE 'post_id' = $post_id
+											    " );
+
+											foreach ( $wpdb->last_result as $k => $v ) {
+												$data[ $v->meta_key ] = $v->meta_value;
+											};
+
+											return $data;
+										}
+
+										get_post_meta_all(the_ID());
+
+
+										?></li>
 
 								</ul>
 

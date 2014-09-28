@@ -4,7 +4,8 @@ wp-content/plugins/kyss-speaker-registry 3.zip
 wp-content/plugins/kyss-speaker-registry.zip
 wp-content/plugins/kyss-speaker-registry/.gitignore
 wp-content/plugins/test_create_speakers.php
-wp-content/uploads/
+wp-content/plugins/civicrm
+wp-content/uploads
 wp-content/themes
 .idea
 wp-admin
