@@ -5,6 +5,8 @@ wp-content/plugins/kyss-speaker-registry.zip
 wp-content/plugins/kyss-speaker-registry/.gitignore
 wp-content/plugins/test_create_speakers.php
 wp-content/plugins/civicrm
+wp-content/plugins/files
+wp-content/plugins/*.zip
 wp-content/uploads
 wp-content/themes
 .idea
