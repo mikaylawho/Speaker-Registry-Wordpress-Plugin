@@ -9,7 +9,7 @@
       <?php $sync_confirm_url = get_site_url() ."/wp-admin/admin.php?&action=confirm&page=civi_member_sync/manual_sync.php"; ?>
 	      <?php $sync_import_url = get_site_url() ."/wp-admin/admin.php?&action=import&page=civi_member_sync/manual_sync.php"; ?>
        <input class="button-primary" type="submit" value="Synchronize CiviMember Membership Types to WordPress Roles now" onclick="window.location.href='<?php echo $sync_confirm_url; ?>'" />
-	      <input class="button-primary" type="submit" value="Synchronize CiviMember Membership Types to WordPress Roles now" onclick="window.location.href='<?php echo $sync_import_url; ?>'" />
+	      <input class="button-primary" type="submit" value="Import CiviMember Members To Wordpress User List" onclick="window.location.href='<?php echo $sync_import_url; ?>'" />
       </td> 
    </tr> 
   </table> 
@@ -76,24 +76,53 @@ if( isset($_GET['action']) ){
 
 
 		if ( $_GET['action'] == 'import' ) {
-			echo 'Import button was pushed';
-			$result = civicrm_api3(
-				'Email',
-				'get',
-				array(
-					'return' => array( "email", "contact_id" ),
-					//'contact_id' => array( 'IN' => "" ),
 
+
+			$result_current_members = civicrm_api3( 'Membership', 'get', array(
+					'sequential' => 1,
+					'return'     => "contact_id",
+					'status_id'  => array(
+						'IN' => array(
+							"1",
+							"3",
+							"2"
+						)
+					),
 				) );
 
-			if ( isset( $result ) ) {
+			$current_member_id_array = array();
 
-				foreach ( $result['values'] as $key => $values ) {
+			$array_counter = 0;
+			foreach ( $result_current_members['values'] as $key => $values ) {
 
-					echo $values['email'];
+				$current_member_id_array[$array_counter] = $values['contact_id'] ;
+				$array_counter += 1;
+			}
+
+			$result_member_emails = civicrm_api3( 'Email', 'get', array(
+					'return' => array( "email", "contact_id" ),
+					'contact_id' => array( 'IN' => $current_member_id_array ),
+				) );
+
+			if ( isset( $result_member_emails ) ) {
+
+				foreach ( $result_member_emails['values'] as $key => $values ) {
+
+					$email = $values['email'];
+					$parts = explode("@",$email);
+					$username = $parts[0];
+
+					//TODO: create random passwords for the users.
+					//TODO: Make sure that emails are sent to new users with their password and instructions.
+					$user_id = wp_create_user($username,'password',$values['email']);
+
+					echo $values['email'] . ' ID: '  . $user_id . '. <br>';
+
 
 				}
 			}
+
+
 
 		}
 	//}
