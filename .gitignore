@@ -1,7 +1,4 @@
 # Created by .gitignore support plugin (hsz.mobi)
-wp-content/plugins/kyss-speaker-registry 2.zip
-wp-content/plugins/kyss-speaker-registry 3.zip
-wp-content/plugins/kyss-speaker-registry.zip
 wp-content/plugins/kyss-speaker-registry/.gitignore
 wp-content/plugins/test_create_speakers.php
 wp-content/plugins/civicrm
