@@ -2,8 +2,8 @@
 
 class CrmSync {
 
-	private static $MembershipType;
-	private static $MembershipStatus;
+	//private static $MembershipType;
+	//private static $MembershipStatus;
 
 	/**
 	 * @return mixed
@@ -136,11 +136,107 @@ class CrmSync {
 					$currentRole = $userData->roles[0];
 				}
 				//checking membership status and assign role
-				$check = member_check( $cid, $uid, $currentRole );
+				$check = self::member_check( $cid, $uid, $currentRole );
 
 			}
 		}
 	}
+
+	function civi_member_sync_check() {
+
+		global $wpdb;
+		global $user;
+		global $current_user;
+		//get username in post while login
+		if ( ! empty( $_POST['log'] ) ) {
+			$username      = $_POST['log'];
+			$userDetails   = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->users WHERE user_login =%s", $username ) );
+			$currentUserID = $userDetails[0]->ID;
+		} else {
+			$currentUserID = $current_user->ID;
+		}
+		//getting current logged in user's role
+		$current_user_role = new WP_User( $currentUserID );
+		$current_user_role = $current_user_role->roles[0];
+
+		civicrm_wp_initialize();
+		//getting user's civi contact id and checkmembership details
+		if ( $current_user_role != 'administrator' ) {
+			require_once 'CRM/Core/Config.php';
+			$config = CRM_Core_Config::singleton();
+			require_once 'api/api.php';
+			$params         = array(
+				'version'    => '3',
+				'page'       => 'CiviCRM',
+				'q'          => 'civicrm/ajax/rest',
+				'sequential' => '1',
+				'uf_id'      => $currentUserID
+			);
+			$contactDetails = civicrm_api( "UFMatch", "get", $params );
+			$contactID      = $contactDetails['values'][0]['contact_id'];
+			if ( ! empty( $contactID ) ) {
+				$member = self::member_check( $contactID, $currentUserID, $current_user_role );
+			}
+		}
+
+		return true;
+	}
+
+	/** function to check membership record and assign wordpress role based on themembership status
+	 * input params
+	 * #CiviCRM contactID
+	 * #ordpress UserID and
+	 * #User Role **/
+	static function member_check( $contactID, $currentUserID, $current_user_role ) {
+
+		global $wpdb;
+		global $user;
+		global $current_user;
+		if ( $current_user_role != 'administrator' ) {
+			//fetching membership details
+			$memDetails = civicrm_api( "Membership", "get", array( 'version'    => '3',
+			                                                       'page'       => 'CiviCRM',
+			                                                       'q'          => 'civicrm/ajax/rest',
+			                                                       'sequential' => '1',
+			                                                       'contact_id' => $contactID
+			) );
+			if ( ! empty( $memDetails['values'] ) ) {
+				foreach ( $memDetails['values'] as $key => $value ) {
+					$memStatusID      = $value['status_id'];
+					$membershipTypeID = $value['membership_type_id'];
+				}
+			}
+
+			//fetching member sync association rule to the corsponding membership type
+			$wpdb->civi_member_sync = $wpdb->prefix . 'civi_member_sync';
+			$memSyncRulesDetails    = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->civi_member_sync WHERE `civi_mem_type`=%d", $membershipTypeID ) );
+			if ( ! empty( $memSyncRulesDetails ) ) {
+				$current_rule = unserialize( $memSyncRulesDetails[0]->current_rule );
+				$expiry_rule  = unserialize( $memSyncRulesDetails[0]->expiry_rule );
+				//checking membership status
+				if ( isset( $memStatusID ) && array_search( $memStatusID, $current_rule ) ) {
+					$wp_role = strtolower( $memSyncRulesDetails[0]->wp_role );
+					if ( $wp_role == $current_user_role ) {
+						return;
+					} else {
+						$wp_user_object = new WP_User( $currentUserID );
+						$wp_user_object->set_role( "$wp_role" );
+					}
+				} else {
+					$wp_user_object  = new WP_User( $currentUserID );
+					$expired_wp_role = strtolower( $memSyncRulesDetails[0]->expire_wp_role );
+					if ( ! empty( $expired_wp_role ) ) {
+						$wp_user_object->set_role( "$expired_wp_role" );
+					} else {
+						$wp_user_object->set_role( "" );
+					}
+				}
+			}
+		}
+
+		return true;
+	}
+
 
 	static function import_civi_members_to_wordpress() {
 		$return_message = '';
