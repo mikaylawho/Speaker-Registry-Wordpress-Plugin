@@ -58,10 +58,8 @@ if ( isset( $_GET['q'] ) && $_GET['q'] == "edit" ) {
 					<td><select name="civi_member_type" id="civi_member_type" class="required">
 							<option value=""></option>
 							<?php
-							//added globals here -- resolved the issue with the CiviMemberType dropdown list.
 							global $civi_member_type;
-							global $MembershipType;
-							foreach ( $MembershipType as $key => $value ) {
+							foreach ( CrmSync::getMembershipType() as $key => $value ) {
 								?>
 								<option value=<?php echo $key;
 								if ($key == $civi_member_type) { ?> selected="selected" <?php } ?>> <?php echo $value; ?></option>
@@ -98,7 +96,7 @@ if ( isset( $_GET['q'] ) && $_GET['q'] == "edit" ) {
 					</th>
 					<td>
 						<?php
-						foreach ( $MembershipStatus as $key => $value ) {
+						foreach ( CrmSync::getMembershipStatus() as $key => $value ) {
 							?>
 							<input type="checkbox"
 							       name=<?php echo "current[$key]"; ?> id =<?php echo "current[$key]";?>  value=<?php echo $key;  if ( ! empty( $current_rule ) ) {

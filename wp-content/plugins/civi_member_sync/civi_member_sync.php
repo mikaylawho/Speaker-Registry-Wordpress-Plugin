@@ -42,46 +42,10 @@ register_activation_hook( __FILE__, 'tadms_install' );
 
 /** function to schedule manual sync daily **/
 
-function civi_member_sync_daily() {
-	$users = get_users();
-
-	require_once( 'civi.php' );
-	require_once 'CRM/Core/BAO/UFMatch.php';
-
-	foreach ( $users as $user ) {
-		$uid = $user->ID;
-		if ( empty( $uid ) ) {
-			continue;
-		}
-		$sql     = "SELECT * FROM civicrm_uf_match WHERE uf_id =$uid";
-		$contact = CRM_Core_DAO::executeQuery( $sql );
 
 
-		if ( $contact->fetch() ) {
-			$cid        = $contact->contact_id;
-			$memDetails = civicrm_api( "Membership", "get", array( 'version'    => '3',
-			                                                       'page'       => 'CiviCRM',
-			                                                       'q'          => 'civicrm/ajax/rest',
-			                                                       'sequential' => '1',
-			                                                       'contact_id' => $cid
-				) );
-			if ( ! empty( $memDetails['values'] ) ) {
-				foreach ( $memDetails['values'] as $key => $value ) {
-					$memStatusID      = $value['status_id'];
-					$membershipTypeID = $value['membership_type_id'];
-				}
-			}
-
-			$userData = get_userdata( $uid );
-			if ( ! empty( $userData ) ) {
-				$currentRole = $userData->roles[0];
-			}
-			//checking membership status and assign role
-			$check = member_check( $cid, $uid, $currentRole );
-
-		}
-	}
-}
+/* function civi_member_sync_daily moved to civi.php. Same function is shared by manual sync and by daily sync.*/
+//require_once( 'civi.php' );
 
 if ( ! wp_next_scheduled( 'civi_member_sync_refresh' ) ) {
 	wp_schedule_event( time(), 'daily', 'civi_member_sync_refresh' );

@@ -39,8 +39,8 @@ $select = $wpdb->get_results( " SELECT id, wp_role, civi_mem_type, current_rule,
 		foreach ( $select as $key => $value ) {
 			?>
 			<tr>
-				<td><?php global $MembershipType;
-					echo get_names( $value->civi_mem_type, $MembershipType ); ?>
+				<td><?php
+					echo CrmSync::get_names( $value->civi_mem_type, CrmSync::getMembershipType() ); ?>
 					<br/>
 					<?php $edit_url = get_site_url() . "/wp-admin/admin.php?&q=edit&id=" . $value->id . "&page=civi_member_sync/settings.php"; ?>
 					<?php $delete_url = get_site_url() . "/wp-admin/admin.php?&q=delete&id=" . $value->id . "&page=civi_member_sync/list.php"; ?>
@@ -51,9 +51,9 @@ $select = $wpdb->get_results( " SELECT id, wp_role, civi_mem_type, current_rule,
 					</div>
 				</td>
 				<td><?php echo $value->wp_role; ?></td>
-				<td><?php global $MembershipStatus;
-					echo get_names_serialized( $value->current_rule, $MembershipStatus ); ?></td>
-				<td><?php echo get_names_serialized( $value->expiry_rule, $MembershipStatus ); ?></td>
+				<td><?php
+					echo CrmSync::get_names_serialized( $value->current_rule, CrmSync::getMembershipStatus()); ?></td>
+				<td><?php echo CrmSync::get_names_serialized( $value->expiry_rule, CrmSync::getMembershipStatus() ); ?></td>
 				<td><?php echo $value->expire_wp_role; ?></td>
 			</tr>
 		<?php
