@@ -16,9 +16,10 @@ class CrmSync {
 	}
 
 	/**
-	 * @param mixed $MembershipType
+	 * @internal param mixed $MembershipType
 	 */
 	public static function setMembershipType() {
+		civicrm_wp_initialize();
 		global $MembershipType;
 		$MembershipTypeDetails = civicrm_api( "MembershipType", "get", array(
 			'version'    => '3',
@@ -49,6 +50,7 @@ class CrmSync {
 	 * @param mixed $MembershipStatus
 	 */
 	public static function setMembershipStatus() {
+		civicrm_wp_initialize();
 		global $MembershipStatus;
 		$MembershipStatusDetails = civicrm_api( "MembershipStatus", "get", array(
 			'version'    => '3',
@@ -64,6 +66,7 @@ class CrmSync {
 
 
 	static function civi_member_sync() {
+		civicrm_wp_initialize();
 		$users = get_users();
 
 		foreach ( $users as $user ) {
@@ -86,9 +89,10 @@ class CrmSync {
 				$userData = get_userdata( $uid );
 				if ( ! empty( $userData ) ) {
 					$currentRole = $userData->roles[0];
+					//checking membership status and assign role
+					self::member_check( $cid, $uid, $currentRole );
 				}
-				//checking membership status and assign role
-				$check = self::member_check( $cid, $uid, $currentRole );
+
 
 			}
 		}
@@ -101,6 +105,7 @@ class CrmSync {
 	 * @throws CiviCRM_API3_Exception
 	 */
 	private static function get_civicrm_contacts_that_match_wordpress_users( $uemail ) {
+		civicrm_wp_initialize();
 		$contact = civicrm_api3( 'UFMatch', 'get', array(
 			'sequential' => 1,
 			'return'     => array( "uf_id", "contact_id", "uf_name" ),
@@ -110,13 +115,11 @@ class CrmSync {
 		return $contact;
 	}
 
-	private static $memStatusID = '';
-	private static $membershipTypeID = '';
-
 	/**
 	 * @param $cid
 	 */
 	private static function set_civi_contact_membership_details( $cid ) {
+		civicrm_wp_initialize();
 		global $memStatusID, $membershipTypeID;
 		$memDetails = civicrm_api( "Membership", "get", array(
 			'sequential' => '1',
@@ -131,14 +134,22 @@ class CrmSync {
 	}
 
 
-	/** function to check membership record and assign wordpress role based on themembership status
+	/** function to check membership record and assign wordpress role based on the membership status
 	 * input params
 	 * #CiviCRM contactID
-	 * #ordpress UserID and
-	 * #User Role **/
+	 * #Wordpress UserID and
+	 * #User Role *
+	 *
+	 * @param $contactID
+	 * @param $currentUserID
+	 * @param $current_user_role
+	 *
+	 * @return bool
+	 */
 	static function member_check( $contactID, $currentUserID, $current_user_role ) {
+		civicrm_wp_initialize();
 
-		global $wpdb, $membershipTypeID, $memStatusID;
+		global $membershipTypeID, $memStatusID;
 		if ( $current_user_role != 'administrator' ) {
 			//fetching membership details, setting $membershipTypeID and $memStatusID
 			self::set_civi_contact_membership_details( $contactID );
@@ -147,12 +158,12 @@ class CrmSync {
 
 			if ( ! empty( $memSyncRulesDetails ) ) {
 				$current_rule = unserialize( $memSyncRulesDetails[0]->current_rule );
-				$expiry_rule  = unserialize( $memSyncRulesDetails[0]->expiry_rule );
+				//$expiry_rule  = unserialize( $memSyncRulesDetails[0]->expiry_rule ); unused variable
 				//checking membership status
 				if ( isset( $memStatusID ) && array_search( $memStatusID, $current_rule ) ) {
 					$wp_role = strtolower( $memSyncRulesDetails[0]->wp_role );
 					if ( $wp_role == $current_user_role ) {
-						return;
+						//do nothing
 					} else {
 						$wp_user_object = new WP_User( $currentUserID );
 						$wp_user_object->set_role( "$wp_role" );
@@ -173,16 +184,21 @@ class CrmSync {
 	}
 
 
+	/**
+	 * @return string
+	 * @throws CiviCRM_API3_Exception
+	 */
 	static function import_civi_members_to_wordpress() {
+		civicrm_wp_initialize();
 		$return_message            = '';
 		$account_creation_messages = '';
 
 		$member_types_to_sync = array();
 
-		$rules = self::get_civi_sync_rules();
+		$rules         = self::get_civi_sync_rules();
 		$array_counter = 0;
 		foreach ( $rules as $key => $value ) {
-			$member_types_to_sync[$array_counter] = $value->civi_mem_type;
+			$member_types_to_sync[ $array_counter ] = $value->civi_mem_type;
 			$array_counter += 1;
 		}
 
@@ -195,40 +211,56 @@ class CrmSync {
 			),
 		) );
 
-		$current_member_id_array = array();
-
-		$array_counter = 0;
+		$current_member_array = array();
 		foreach ( $result_current_members['values'] as $key => $values ) {
+			$current_member_array[] = $values['contact_id'];
+		}
 
-			$current_member_id_array[ $array_counter ] = $values['contact_id'];
-			$array_counter += 1;
+
+		$result_contacts = civicrm_api3( 'Contact', 'get', array(
+			'sequential' => 1,
+			'return'     => array( "first_name", "last_name", "id" ),
+			'id'         => array( 'IN' => $current_member_array ),
+		) );
+		if ( isset( $result_contacts ) ) {
+			foreach ( $result_contacts['values'] as $key => $values ) {
+				$member_array[ $values['id'] ] = array( 'email'      => '',
+				                                        'first_name' => $values['first_name'],
+				                                        'last_name'  => $values['last_name']
+				);
+			}
 		}
 
 		$result_member_emails = civicrm_api3( 'Email', 'get', array(
 			'return'     => array( "email", "contact_id" ),
-			'contact_id' => array( 'IN' => $current_member_id_array ),
+			'contact_id' => array( 'IN' => $current_member_array ),
 			'is_primary' => 1,
 		) );
-
 		if ( isset( $result_member_emails ) ) {
+			foreach ( $result_member_emails['values'] as $key => $values ) {
+				$member_array[ $values['contact_id'] ]['email'] = $values['email'];
+			}
+		}
+
+		if ( isset( $member_array ) ) {
 			$new_account_count = 0;
 
-			foreach ( $result_member_emails['values'] as $key => $values ) {
+
+			//TODO: make this more efficient by filtering out the emails that already exist in Wordpress.
+			foreach ( $member_array as $key => $values ) {
 
 				//extract the alias part of the email for the new user's username
 				$email    = $values['email'];
 				$parts    = explode( "@", $email );
 				$username = $parts[0];
 
-				$email = $values['email'];
-
-				if ( null == username_exists( $username ) ) {
+				if ( null == username_exists( $username ) and !empty($email)  ) {
 					$password = wp_generate_password( 12, true );
 					$user_id  = wp_create_user( $username, $password, $email );
 
 					if ( is_wp_error( $user_id ) ) {
 
-						echo 'Error creating user ' . $username . '/' . $email . ': ' . $user_id->get_error_message();
+						echo 'Error creating user ' . $username . ' / ' . $email . ':<br>' . $user_id->get_error_message();
 						echo '<br>';
 
 					} else {
@@ -238,14 +270,21 @@ class CrmSync {
 
 						wp_update_user(
 							array(
-								'ID'       => $user_id,
-								'nickname' => $email,
+								'ID'         => $user_id,
+								'nickname'   => $email,
+								'first_name' => $values['first_name'],
+								'last_name'  => $values['last_name'],
 							)
 
 						);
 
+						/*this line is not working. Need to research*/
+						//Update CiviCRM UFMatch record so that the new Wordpress user is appropriately connected to their Contact record in CiviCrm
+						CRM_Core_BAO_UFMatch::synchronizeUFMatch( $username, $user_id, $email, 'WordPress' );
+
 						// Email the user
 						wp_mail( $email, 'Welcome ' . $username . '!', ' Your Password: ' . $password );
+						echo 'Welcome ' . $username . '!', ' Your Password: ' . $password . ' sent to ' . $email . '<br>';
 
 						$new_account_count += 1;
 					}
@@ -326,6 +365,6 @@ class CrmSync {
 
 }
 
-civicrm_wp_initialize();
+//civicrm_wp_initialize();
 
 ?>

@@ -2,7 +2,7 @@
 <div class="wrap">
 	<h2 id="add-new-user">Manual Synchronize</h2>
 
-	<?php ?>
+	<?php civicrm_wp_initialize(); ?>
 	<table class="form-table">
 		<td>
 			<span>Manual Synchronization:</span> <br/>
