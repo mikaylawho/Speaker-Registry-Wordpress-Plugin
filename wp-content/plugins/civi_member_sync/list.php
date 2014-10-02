@@ -18,10 +18,10 @@ $manual_sync_url = get_bloginfo( 'url' ) . "/wp-admin/admin.php?&page=civi_membe
 </div>
 
 <?php
-$tablename = $wpdb->prefix . 'civi_member_sync';
-//changed to %s from $tablename. The syntax was wrong for string replacement...
-//replaced "Select *" with column names
-$select = $wpdb->get_results( " SELECT id, wp_role, civi_mem_type, current_rule, expiry_rule, expire_wp_role FROM " . $tablename );
+
+
+$select = CrmSync::get_civi_sync_rules();
+
 
 ?>
 <table cellspacing="0" border="0" class="wp-list-table widefat fixed users">

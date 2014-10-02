@@ -2,17 +2,17 @@
 
 class CrmSync {
 
-	//private static $MembershipType;
-	//private static $MembershipStatus;
 
 	/**
-	 * @return mixed
+	 * @return Array
 	 */
 	public static function getMembershipType() {
 		global $MembershipType;
-		if(!isset($MembershipType)){
+		if ( ! isset( $MembershipType ) ) {
 			self::setMembershipType();
-		}return $MembershipType;
+		}
+
+		return $MembershipType;
 	}
 
 	/**
@@ -27,20 +27,21 @@ class CrmSync {
 		foreach ( $MembershipTypeDetails['values'] as $key => $values ) {
 			$MemType[ $values['id'] ] = $values['name'];
 		}
-		if(isset($MemType)){
+		if ( isset( $MemType ) ) {
 			$MembershipType = $MemType;
 		}
 
 	}
 
 	/**
-	 * @return mixed
+	 * @return Array
 	 */
 	public static function getMembershipStatus() {
 		global $MembershipStatus;
-		if(!isset($MembershipStatus)){
+		if ( ! isset( $MembershipStatus ) ) {
 			self::setMembershipStatus();
 		}
+
 		return $MembershipStatus;
 	}
 
@@ -56,46 +57,11 @@ class CrmSync {
 		foreach ( $MembershipStatusDetails['values'] as $key => $values ) {
 			$MemStatus[ $values['id'] ] = str_replace( ' ', '', $values['name'] );
 		}
-		if(isset($MemStatus)){
+		if ( isset( $MemStatus ) ) {
 			$MembershipStatus = $MemStatus;
 		}
 	}
 
-
-
-
-
-	static function get_names_serialized( $values, $memArray ) {
-		$memArray     = array_flip( $memArray );
-		$current_rule = unserialize( $values );
-		if ( empty( $current_rule ) ) {
-			$current_rule = $values;
-		}
-		$current_roles = "";
-		if ( ! empty( $current_rule ) ) {
-			if ( is_array( $current_rule ) ) {
-				foreach ( $current_rule as $ckey => $cvalue ) {
-					$current_roles .= array_search( $ckey, $memArray ) . "<br>";
-				}
-			} else {
-				$current_roles = array_search( $current_rule, $memArray ) . "<br>";
-			}
-		}
-
-		return $current_roles;
-	}
-
-	static function get_names( $values, $memArray ) {
-		$memArray     = array_flip( $memArray );
-		$current_rule = $values;
-		$current_role = "";
-
-		if ( ! empty( $current_rule ) ) {
-			$current_role = array_search( $current_rule, $memArray ) . "<br>";
-		}
-
-		return $current_role;
-	}
 
 	static function civi_member_sync() {
 		$users = get_users();
@@ -104,32 +70,18 @@ class CrmSync {
 			$uid    = $user->ID;
 			$uemail = $user->data->user_email;
 
-			if ( empty( $uemail ) ) {
+			if ( empty( $uid ) ) {
 				continue;
 			}
 
 			//Mikel -- Updated to use the Civicrm API, and to match CiviUsers with Wordpress users based on primary email
 			//rather than id
 
-			$contact = civicrm_api3( 'UFMatch', 'get', array(
-				'sequential' => 1,
-				'return'     => array( "uf_id", "contact_id" ),
-				'uf_name'    => $uemail,
-			) );
+			$contact = self::get_civicrm_contacts_that_match_wordpress_users( $uemail );
 
 			if ( isset( $contact ) ) {
 				//if ( $contact->fetch() ) {
-				$cid        = $contact['values']['0']['contact_id'];
-				$memDetails = civicrm_api( "Membership", "get", array(
-					'sequential' => '1',
-					'contact_id' => $cid
-				) );
-				if ( ! empty( $memDetails['values'] ) ) {
-					foreach ( $memDetails['values'] as $key => $value ) {
-						$memStatusID      = $value['status_id'];
-						$membershipTypeID = $value['membership_type_id'];
-					}
-				}
+				$cid = $contact['values']['0']['contact_id'];
 
 				$userData = get_userdata( $uid );
 				if ( ! empty( $userData ) ) {
@@ -142,45 +94,42 @@ class CrmSync {
 		}
 	}
 
-	function civi_member_sync_check() {
+	/**
+	 * @param $uemail
+	 *
+	 * @return array
+	 * @throws CiviCRM_API3_Exception
+	 */
+	private static function get_civicrm_contacts_that_match_wordpress_users( $uemail ) {
+		$contact = civicrm_api3( 'UFMatch', 'get', array(
+			'sequential' => 1,
+			'return'     => array( "uf_id", "contact_id", "uf_name" ),
+			'uf_name'    => $uemail,
+		) );
 
-		global $wpdb;
-		global $user;
-		global $current_user;
-		//get username in post while login
-		if ( ! empty( $_POST['log'] ) ) {
-			$username      = $_POST['log'];
-			$userDetails   = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->users WHERE user_login =%s", $username ) );
-			$currentUserID = $userDetails[0]->ID;
-		} else {
-			$currentUserID = $current_user->ID;
-		}
-		//getting current logged in user's role
-		$current_user_role = new WP_User( $currentUserID );
-		$current_user_role = $current_user_role->roles[0];
+		return $contact;
+	}
 
-		civicrm_wp_initialize();
-		//getting user's civi contact id and checkmembership details
-		if ( $current_user_role != 'administrator' ) {
-			require_once 'CRM/Core/Config.php';
-			$config = CRM_Core_Config::singleton();
-			require_once 'api/api.php';
-			$params         = array(
-				'version'    => '3',
-				'page'       => 'CiviCRM',
-				'q'          => 'civicrm/ajax/rest',
-				'sequential' => '1',
-				'uf_id'      => $currentUserID
-			);
-			$contactDetails = civicrm_api( "UFMatch", "get", $params );
-			$contactID      = $contactDetails['values'][0]['contact_id'];
-			if ( ! empty( $contactID ) ) {
-				$member = self::member_check( $contactID, $currentUserID, $current_user_role );
+	private static $memStatusID = '';
+	private static $membershipTypeID = '';
+
+	/**
+	 * @param $cid
+	 */
+	private static function set_civi_contact_membership_details( $cid ) {
+		global $memStatusID, $membershipTypeID;
+		$memDetails = civicrm_api( "Membership", "get", array(
+			'sequential' => '1',
+			'contact_id' => $cid
+		) );
+		if ( ! empty( $memDetails['values'] ) ) {
+			foreach ( $memDetails['values'] as $key => $value ) {
+				$memStatusID      = $value['status_id'];
+				$membershipTypeID = $value['membership_type_id'];
 			}
 		}
-
-		return true;
 	}
+
 
 	/** function to check membership record and assign wordpress role based on themembership status
 	 * input params
@@ -189,27 +138,13 @@ class CrmSync {
 	 * #User Role **/
 	static function member_check( $contactID, $currentUserID, $current_user_role ) {
 
-		global $wpdb;
-		global $user;
-		global $current_user;
+		global $wpdb, $membershipTypeID, $memStatusID;
 		if ( $current_user_role != 'administrator' ) {
-			//fetching membership details
-			$memDetails = civicrm_api( "Membership", "get", array( 'version'    => '3',
-			                                                       'page'       => 'CiviCRM',
-			                                                       'q'          => 'civicrm/ajax/rest',
-			                                                       'sequential' => '1',
-			                                                       'contact_id' => $contactID
-			) );
-			if ( ! empty( $memDetails['values'] ) ) {
-				foreach ( $memDetails['values'] as $key => $value ) {
-					$memStatusID      = $value['status_id'];
-					$membershipTypeID = $value['membership_type_id'];
-				}
-			}
+			//fetching membership details, setting $membershipTypeID and $memStatusID
+			self::set_civi_contact_membership_details( $contactID );
+			$memSyncRulesDetails = self::get_civi_sync_rules_by_member_type_id( $membershipTypeID );
 
-			//fetching member sync association rule to the corsponding membership type
-			$wpdb->civi_member_sync = $wpdb->prefix . 'civi_member_sync';
-			$memSyncRulesDetails    = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->civi_member_sync WHERE `civi_mem_type`=%d", $membershipTypeID ) );
+
 			if ( ! empty( $memSyncRulesDetails ) ) {
 				$current_rule = unserialize( $memSyncRulesDetails[0]->current_rule );
 				$expiry_rule  = unserialize( $memSyncRulesDetails[0]->expiry_rule );
@@ -239,26 +174,24 @@ class CrmSync {
 
 
 	static function import_civi_members_to_wordpress() {
-		$return_message = '';
+		$return_message            = '';
 		$account_creation_messages = '';
 
-//TODO: adjust this so that the targeted member organization(s) and membership types are configurable
+		$member_types_to_sync = array();
+
+		$rules = self::get_civi_sync_rules();
+		$array_counter = 0;
+		foreach ( $rules as $key => $value ) {
+			$member_types_to_sync[$array_counter] = $value->civi_mem_type;
+			$array_counter += 1;
+		}
+
+		//have them pull from the CiviSync rules
 		$result_current_members = civicrm_api3( 'Membership', 'get', array(
 			'sequential'         => 1,
 			'return'             => array( "contact_id" ),
-			'status_id'          => array(
-				'IN' => array(
-					"1",
-					"2",
-					"3"
-				)
-			),
 			'membership_type_id' => array(
-				'IN' => array(
-					"1",
-					"2",
-					"3",
-				)
+				'IN' => $member_types_to_sync
 			),
 		) );
 
@@ -325,6 +258,72 @@ class CrmSync {
 		return $return_message;
 
 	}
+
+	//helper functions
+	static function get_names_serialized( $values, $memArray ) {
+		$memArray     = array_flip( $memArray );
+		$current_rule = unserialize( $values );
+		if ( empty( $current_rule ) ) {
+			$current_rule = $values;
+		}
+		$current_roles = "";
+		if ( ! empty( $current_rule ) ) {
+			if ( is_array( $current_rule ) ) {
+				foreach ( $current_rule as $ckey => $cvalue ) {
+					$current_roles .= array_search( $ckey, $memArray ) . "<br>";
+				}
+			} else {
+				$current_roles = array_search( $current_rule, $memArray ) . "<br>";
+			}
+		}
+
+		return $current_roles;
+	}
+
+	static function get_names( $values, $memArray ) {
+		$memArray     = array_flip( $memArray );
+		$current_rule = $values;
+		$current_role = "";
+
+		if ( ! empty( $current_rule ) ) {
+			$current_role = array_search( $current_rule, $memArray ) . "<br>";
+		}
+
+		return $current_role;
+	}
+
+	/**
+	 * @param $wpdb
+	 *
+	 * @return
+	 */
+	static function get_civi_sync_rules() {
+		global $wpdb;
+		$tablename = $wpdb->prefix . 'civi_member_sync';
+		//changed to %s from $tablename. The syntax was wrong for string replacement...
+		//replaced "Select *" with column names
+		$select = $wpdb->get_results( " SELECT id, wp_role, civi_mem_type, current_rule, expiry_rule, expire_wp_role FROM " . $tablename );
+
+		return $select;
+	}
+
+
+	/**
+	 * @param $wpdb
+	 * @param $membershipTypeID
+	 *
+	 * @return mixed
+	 */
+	static function get_civi_sync_rules_by_member_type_id( $membershipTypeID ) {
+		global $wpdb;
+//fetching member sync association rule to the corsponding membership type
+		$wpdb->civi_member_sync = $wpdb->prefix . 'civi_member_sync';
+		$memSyncRulesDetails    = $wpdb->get_results( $wpdb->prepare( "SELECT id, wp_role, civi_mem_type, current_rule, expiry_rule, expire_wp_role FROM $wpdb->civi_member_sync WHERE `civi_mem_type`= %d", $membershipTypeID ) );
+
+		return $memSyncRulesDetails;
+	}
+
+
 }
 
 civicrm_wp_initialize();

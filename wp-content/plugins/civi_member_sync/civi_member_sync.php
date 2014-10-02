@@ -50,6 +50,45 @@ add_action( 'civi_member_sync_refresh', 'civi_member_sync_daily' );
 
 /** function to check user's membership record while login and logout **/
 
+function civi_member_sync_check() {
+
+	global $wpdb;
+	global $user;
+	global $current_user;
+	//get username in post while login
+	if ( ! empty( $_POST['log'] ) ) {
+		$username      = $_POST['log'];
+		$userDetails   = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->users WHERE user_login =%s", $username ) );
+		$currentUserID = $userDetails[0]->ID;
+	} else {
+		$currentUserID = $current_user->ID;
+	}
+	//getting current logged in user's role
+	$current_user_role = new WP_User( $currentUserID );
+	$current_user_role = $current_user_role->roles[0];
+
+	civicrm_wp_initialize();
+	//getting user's civi contact id and checkmembership details
+	if ( $current_user_role != 'administrator' ) {
+		require_once 'CRM/Core/Config.php';
+		$config = CRM_Core_Config::singleton();
+		require_once 'api/api.php';
+		$params         = array(
+			'version'    => '3',
+			'page'       => 'CiviCRM',
+			'q'          => 'civicrm/ajax/rest',
+			'sequential' => '1',
+			'uf_id'      => $currentUserID
+		);
+		$contactDetails = civicrm_api( "UFMatch", "get", $params );
+		$contactID      = $contactDetails['values'][0]['contact_id'];
+		if ( ! empty( $contactID ) ) {
+			$member = self::member_check( $contactID, $currentUserID, $current_user_role );
+		}
+	}
+
+	return true;
+}
 
 add_action( 'wp_login', 'civi_member_sync_check' );
 add_action( 'wp_logout', 'civi_member_sync_check' );
