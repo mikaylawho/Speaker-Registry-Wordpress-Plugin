@@ -120,10 +120,11 @@ class CrmSync {
 	private static function get_civi_contact_membership_details( $cid ) {
 		civicrm_wp_initialize();
 		global $memStatusID, $membershipTypeID;
-		$memDetails = civicrm_api( "Membership", "get", array(
-			'sequential' => '1',
-			'contact_id' => $cid
-		) );
+		$memDetails = civicrm_api3('Membership', 'get', array(
+			'sequential' => 1,
+			'return' => array("status_id", "membership_type_id"),
+			'contact_id' => $cid,
+		));
 		if ( ! empty( $memDetails['values'] ) ) {
 			foreach ( $memDetails['values'] as $key => $value ) {
 				$memStatusID      = $value['status_id'];

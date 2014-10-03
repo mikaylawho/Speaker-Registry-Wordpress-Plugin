@@ -59,38 +59,39 @@ function civi_member_sync_check() {
 	civicrm_wp_initialize();
 
 	global $wpdb;
-	global $current_user,$currentUserID,$currentUserEmail;
+	global $current_user, $currentUserID, $currentUserEmail;
 	//get username in post while login
 	if ( ! empty( $_POST['log'] ) ) {
-		$username      = $_POST['log'];
+		$username = $_POST['log'];
 		/*$userDetails   = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->users WHERE user_login =%s", $username ) );
 		$currentUserID = $userDetails[0]->ID;*/
-		$current_user = get_user_by('login', $username );
-		$currentUserID = $current_user['data']['ID'];
-		$currentUserEmail = $current_user['data']['user_email'];
-	}
-
-	//getting current logged in user's role
-	$current_user_role = new WP_User( $currentUserID );
-	$current_user_role = $current_user_role->roles[0];
+		$current_user     = get_user_by( 'login', $username );
+		$currentUserID    = $current_user->ID;
+		$currentUserEmail = $current_user->user_email;
 
 
-	//getting user's civi contact id and checkmembership details
-	if ( $current_user_role != 'administrator' ) {
-		require_once 'CRM/Core/Config.php';
-		$config = CRM_Core_Config::singleton();
-		require_once 'api/api.php';
-		$params         = array(
-			'version'    => '3',
-			'page'       => 'CiviCRM',
-			'q'          => 'civicrm/ajax/rest',
-			'sequential' => '1',
-			'uf_name'    => $currentUserEmail,
-		);
-		$contactDetails = civicrm_api( "UFMatch", "get", $params );
-		$contactID      = $contactDetails['values'][0]['contact_id'];
-		if ( ! empty( $contactID ) ) {
-			$member = CrmSync::member_check( $contactID, $currentUserID, $current_user_role );
+		//getting current logged in user's role
+		$current_user_role = new WP_User( $currentUserID );
+		$current_user_role = $current_user_role->roles[0];
+
+
+		//getting user's civi contact id and checkmembership details
+		if ( $current_user_role != 'administrator' ) {
+			require_once 'CRM/Core/Config.php';
+			$config = CRM_Core_Config::singleton();
+			require_once 'api/api.php';
+			$params         = array(
+				'version'    => '3',
+				'page'       => 'CiviCRM',
+				'q'          => 'civicrm/ajax/rest',
+				'sequential' => '1',
+				'uf_name'    => $currentUserEmail,
+			);
+			$contactDetails = civicrm_api( "UFMatch", "get", $params );
+			$contactID      = $contactDetails['values'][0]['contact_id'];
+			if ( ! empty( $contactID ) ) {
+				$member = CrmSync::member_check( $contactID, $currentUserID, $current_user_role );
+			}
 		}
 	}
 
