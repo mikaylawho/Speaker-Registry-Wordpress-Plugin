@@ -59,17 +59,16 @@ function civi_member_sync_check() {
 	civicrm_wp_initialize();
 
 	global $wpdb;
-	global $current_user;
+	global $current_user,$currentUserID,$currentUserEmail;
 	//get username in post while login
 	if ( ! empty( $_POST['log'] ) ) {
 		$username      = $_POST['log'];
-		$userDetails   = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->users WHERE user_login =%s", $username ) );
-		$currentUserID = $userDetails[0]->ID;
-	} else {
-		$currentUserID = $current_user->ID; //226
-		$current_user_email = $current_user->user_email; //grant.brent57@testmail.org
+		/*$userDetails   = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->users WHERE user_login =%s", $username ) );
+		$currentUserID = $userDetails[0]->ID;*/
+		$current_user = get_user_by('login', $username );
+		$currentUserID = $current_user['data']['ID'];
+		$currentUserEmail = $current_user['data']['user_email'];
 	}
-
 
 	//getting current logged in user's role
 	$current_user_role = new WP_User( $currentUserID );
@@ -86,7 +85,7 @@ function civi_member_sync_check() {
 			'page'       => 'CiviCRM',
 			'q'          => 'civicrm/ajax/rest',
 			'sequential' => '1',
-			'uf_id'      => $currentUserID
+			'uf_name'    => $currentUserEmail,
 		);
 		$contactDetails = civicrm_api( "UFMatch", "get", $params );
 		$contactID      = $contactDetails['values'][0]['contact_id'];

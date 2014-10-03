@@ -71,19 +71,18 @@ class CrmSync {
 
 		foreach ( $users as $user ) {
 			$uid    = $user->ID;
-			$uemail = $user->data->user_email;
+			$email = $user->data->user_email;
 
 			if ( empty( $uid ) ) {
 				continue;
 			}
 
 			//Mikel -- Updated to use the Civicrm API, and to match CiviUsers with Wordpress users based on primary email
-			//rather than id
+			//rather than id -- changing it back now that I think I can sync the id's
 
-			$contact = self::get_civicrm_contacts_that_match_wordpress_users( $uemail );
+			$contact = self::get_civicrm_contacts_that_match_wordpress_users( $email );
 
 			if ( isset( $contact ) ) {
-				//if ( $contact->fetch() ) {
 				$cid = $contact['values']['0']['contact_id'];
 
 				$userData = get_userdata( $uid );
@@ -104,12 +103,12 @@ class CrmSync {
 	 * @return array
 	 * @throws CiviCRM_API3_Exception
 	 */
-	private static function get_civicrm_contacts_that_match_wordpress_users( $uemail ) {
+	private static function get_civicrm_contacts_that_match_wordpress_users( $email ) {
 		civicrm_wp_initialize();
 		$contact = civicrm_api3( 'UFMatch', 'get', array(
 			'sequential' => 1,
 			'return'     => array( "uf_id", "contact_id", "uf_name" ),
-			'uf_name'    => $uemail,
+			'uf_name'    => $email,
 		) );
 
 		return $contact;
@@ -118,7 +117,7 @@ class CrmSync {
 	/**
 	 * @param $cid
 	 */
-	private static function set_civi_contact_membership_details( $cid ) {
+	private static function get_civi_contact_membership_details( $cid ) {
 		civicrm_wp_initialize();
 		global $memStatusID, $membershipTypeID;
 		$memDetails = civicrm_api( "Membership", "get", array(
@@ -152,7 +151,7 @@ class CrmSync {
 		global $membershipTypeID, $memStatusID;
 		if ( $current_user_role != 'administrator' ) {
 			//fetching membership details, setting $membershipTypeID and $memStatusID
-			self::set_civi_contact_membership_details( $contactID );
+			self::get_civi_contact_membership_details( $contactID );
 			$memSyncRulesDetails = self::get_civi_sync_rules_by_member_type_id( $membershipTypeID );
 
 
@@ -278,9 +277,10 @@ class CrmSync {
 
 						);
 
-						/*this line is not working. Need to research*/
 						//Update CiviCRM UFMatch record so that the new Wordpress user is appropriately connected to their Contact record in CiviCrm
-						CRM_Core_BAO_UFMatch::synchronizeUFMatch( $username, $user_id, $email, 'WordPress' );
+						$user = get_user_by('id', $user_id);
+						/*TODO: this line is not working. Need to research*/
+						CRM_Core_BAO_UFMatch::synchronizeUFMatch( $user, $user->ID, $user->email, 'WordPress' );
 
 						// Email the user
 						wp_mail( $email, 'Welcome ' . $username . '!', ' Your Password: ' . $password );
