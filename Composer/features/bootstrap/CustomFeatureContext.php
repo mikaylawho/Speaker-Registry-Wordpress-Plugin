@@ -9,132 +9,134 @@
 
 
 use Behat\Behat\Tester\Exception\PendingException,
-    Behat\Behat\Context;
-
-use Behat\MinkExtension\Context\MinkContext;
+    Behat\Behat\Context,
+    Behat\Mink,
+    Behat\MinkExtension,
+    Behat\MinkExtension\Context\MinkContext;
 
 use Behat\Mink\Session,
     Behat\Mink\Driver\GoutteDriver;
 
 
+require_once '/Users/mikelhensley/Sites/wp_phpstorm/Composer/vendor/autoload.php';
+require_once '/Users/mikelhensley/Sites/wp_phpstorm/Composer/src/Framework/Assert/Functions.php';
 
 
-    class CustomFeatureContext extends MinkContext {
+class CustomFeatureContext extends MinkContext {
 
-        /** @BeforeFeature */
-        public static function prepareForTheFeature() {
+    private $session;
 
-            global $session;
-
-            echo "inside constructor";
-            $driver = new GoutteDriver();
-            // init session:
-            $session = new Session( $driver );
-
-            // init session:
-            $session = new \Behat\Mink\Session( $driver );
-
-            // start session:
-            $session->start();
-
-        } // clean database or do other preparation stuff
-
-        /** @Given we have some context */
-        public function prepareContext() {
-        } // do something
-
-        /** @When event occurs */
-        public function doSomeAction() {
-        } // do something
-
-        /** @Then something should be done */
-        public function checkOutcomes() {
-            global $session;
-            $session->end();
-        } // do something
+//        private $mink;
+    function __construct() {
+        $this->getMink(new Mink\Mink());
+        $this->session = new Session(new GoutteDriver());
+        $this->session->start();
+    }
 
 
-        /**
-         * @Given /^I am logged into the Wordpress site as an "([^"]*)"$/
-         * @param $administrator
-         */
-        public function iAmLoggedIntoTheWordpressSiteAsAn( $administrator ) {
-            $user = wp_get_current_user();
-            assertEquals( $user->roles[0], $administrator );
+    /**
+     * @When /^I login with username "([^"]*)" and password "([^"]*)"$/
+     * @param $username
+     * @param $password
+     *
+     * @throws Exception
+     */
+    public function iLoginWithUsernameAndPassword( $username, $password ) {
+        if ( ! $this->session->isStarted() ) {
+            throw new PendingException( 'session is not started!' );
         }
 
 
-        /**
-         * @Given /^"([^"]*)" plugin is installed on the Wordpress site\.$/
-         * @param $CiviCrm
-         */
-        public function pluginIsInstalledOnTheWordpressSite( $CiviCrm ) {
-
-            $this->assertPageContainsText( $CiviCrm );
-            //$result = assertContains(file_get_contents( ABSPATH . '/wp-includes/plugin.php' ), $CiviCrm);
-            //return $result;
+        // get page content:
+        $this->session->visit( "http://localhost:8888/wp_phpstorm/wp-login.php" );
+        $page = $this->session->getPage();
+        if ( ! isset( $page ) ) {
+            throw new PendingException( "cannot retrieve the login page!" );
         }
 
-        /**
-         * @Given /^I see "([^"]*)"$/
-         * @param $plugin_title
-         */
-        public function iSee( $plugin_title ) {
-            //assertContains(file_get_contents( ABSPATH . '/wp-includes/plugin.php' ), $plugin_title );
-            $this->assertPageContainsText( $plugin_title );
-        }
+        $login_field = $page->findById( 'user_login' );
+        $login_field->setValue( 'phpstorm' );
+        $pass_field = $page->findById( 'user_pass' );
+        $pass_field->setValue( 'phpstorm' );
+        $submit = $page->findById( 'wp-submit' );
+        $submit->click();
 
-        /**
-         * @Given /^I see "([^"]*)" in the same row\.$/
-         * @internal param $arg1
-         */
-        public function iSeeInTheSameRow() {
-            $activate_uri = 'plugins.php?action=activate&amp;plugin=civi_member_sync';
-            $page         = file_get_contents( ABSPATH . '/wp-includes/plugin.php' );
-            assertContains( $page, $activate_uri );
-        }
-
-        /**
-         * @When /^I click "([^"]*)"$/
-         * @param $ActivateLink
-         */
-        public function iClick( $ActivateLink ) {
-
-            $this->visit( $ActivateLink );
-        }
-
-        /**
-         * @Then /^I should see "([^"]*)"$/
-         * @param $confirmation
-         */
-        public function iShouldSee( $confirmation ) {
-            $this->assertPageContainsText( $confirmation );
-        }
-
-        /**
-         * @When /^I go to the Plugins admin page$/
-         */
-        public function iGoToThePluginsAdminPage() {
-            $this->visit( site_url() . '/wp-admin/plugins.php' );
-        }
-
-        /**
-         * @When /^I login with username "([^"]*)" and password "([^"]*)"$/
-         * @param $username
-         * @param $password
-         *
-         * @throws Exception
-         */
-        public function iLoginWithUsernameAndPassword( $username, $password ) {
-            global $session;
-            $this->$session->visit( 'http://localhost:8888/wp_admin.php' );
-
-            //throw new PendingException( "not done yet!" );
-
-        }
-
+        assertContains( 'wp-admin', $this->session->getCurrentUrl() );
 
     }
+
+
+
+    /**
+     * @Given /^I see "([^"]*)"$/
+     * @param $text
+     */
+    public function iSee( $text ) {
+        $this->ConfirmTextOnPage( $text, $this->session->getCurrentUrl() );
+    }
+
+
+    /**
+     * @When /^I click "([^"]*)"$/
+     * @param $ActivateLink
+     */
+    public function iClick( $ActivateLink ) {
+
+        include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+        $this->session->visit( 'http://localhost:8888/wp_phpstorm' . $ActivateLink );
+
+    }
+
+    /**
+     * @Given /^I confirm that "([^"]*)" plugin is installed on the Wordpress site\.$/
+     * @param $CiviCrm
+     */
+    public function iConfirmThatPluginIsInstalledOnTheWordpressSite( $CiviCrm ) {
+        $this->ConfirmTextOnPage( $CiviCrm, 'http://localhost:8888/wp_phpstorm/wp-admin/plugins.php' );
+
+    }
+
+    /**
+     * @param $content_string
+     *
+     * @param $page_url
+     *
+     * @internal param $CiviCrm
+     */
+    private function ConfirmTextOnPage( $content_string, $page_url ) {
+        // get page content:
+        //$this->session->visit( "http://localhost:8888/wp_phpstorm/wp-admin/plugins.php" );
+        $this->session->visit( $page_url );
+        $page = $this->session->getPage();
+        if ( ! isset( $page ) ) {
+            throw new PendingException( "cannot retrieve the page!" );
+        }
+        $page_content = $page->getContent();
+
+        assertContains( $content_string, $page_content );
+    }
+
+    /**
+     * @Given /^I activate the Tadpole CiviMember Role Synchronize plugin\.$/
+     */
+    public function iActivateTheTadpoleCiviMemberRoleSynchronizePlugin() {
+        $feature_row = $this->session->getPage()->findById('tadpole-civimember-role-synchronize');
+        $span = $feature_row->find(
+            'xpath',
+            $this->session->getSelectorsHandler()->selectorToXpath('css', 'span.activate') // just changed xpath to css
+        );
+        $link = $span->find(
+            'xpath',
+            $this->session->getSelectorsHandler()->selectorToXpath('css', 'a') // just changed xpath to css
+        );
+
+        $link->click();
+    }
+
+    //#tadpole-civimember-role-synchronize > td.plugin-title > div >  > a
+
+
+}
 
 
 
