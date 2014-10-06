@@ -11,6 +11,7 @@ Composer/bin
 Composer/src
 Composer/tests
 Composer/.idea
+Composer/php*
 .idea
 wp-admin
 wp-includes
