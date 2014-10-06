@@ -71,8 +71,8 @@ function civi_member_sync_check() {
 
 
 		//getting current logged in user's role
-		$current_user_role = new WP_User( $currentUserID );
-		$current_user_role = $current_user_role->roles[0];
+		//$current_user_role = new WP_User( $currentUserID );
+		$current_user_role = $current_user->roles[0];
 
 
 		//getting user's civi contact id and checkmembership details

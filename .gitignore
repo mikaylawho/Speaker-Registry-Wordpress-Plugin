@@ -6,6 +6,11 @@ wp-content/plugins/files
 wp-content/plugins/*.zip
 wp-content/uploads
 wp-content/themes
+Composer/vendor
+Composer/bin
+Composer/src
+Composer/tests
+Composer/.idea
 .idea
 wp-admin
 wp-includes
