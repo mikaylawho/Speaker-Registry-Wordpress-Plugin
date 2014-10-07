@@ -2,7 +2,7 @@ Feature: As the Wordpress Site administrator, I want to install and configure th
   CiviCRM Member accounts with the Wordpress user accounts.
 
   Scenario: Deactivate the the Tadpole CiviMember Role Synchronize plugin.
-    When I login with username "phpstorm" and password "phpstorm"
+    Given I login with username "phpstorm" and password "phpstorm"
     And I go to the Plugins Admin page
     And I see "Tadpole CiviMember Role Synchronize"
     Given The Tadpole CiviMember Role Synchronize plugin is "activated"
@@ -10,7 +10,7 @@ Feature: As the Wordpress Site administrator, I want to install and configure th
     Then I see "Plugin <strong>deactivated</strong>."
 
   Scenario: Activate the Tadpole CiviMember Role Synchronize plugin.
-    When I login with username "phpstorm" and password "phpstorm"
+    Given I login with username "phpstorm" and password "phpstorm"
     And I confirm that "civicrm" plugin is installed on the Wordpress site.
     And I see "Tadpole CiviMember Role Synchronize"
     Given The Tadpole CiviMember Role Synchronize plugin is "not activated"
@@ -30,6 +30,17 @@ Feature: As the Wordpress Site administrator, I want to install and configure th
      And I see "select" element id "expire_assign_wp_role" with one or more options.
 
    Scenario: Add a New Association Rule
+     Given I login with username "phpstorm" and password "phpstorm"
+     And I go to the Civi Member Sync configuration page.
+     When I click "Add Association Rule"
+     And I select "General" in the "Select a CiviMember Membership Type" dropdown
+     And I select "Contributor" in the "Select a Wordpress Role" dropdown
+     And I check "New,Current,Grace" in "Current Status" checkboxes
+     And I check "Expired,Pending,Cancelled,Deceased" in "Expire Status" checkboxes
+     And I select "Subscriber" in the "Select a Wordpress Expiry Role" dropdown
+     And I click button "Add association rule"
+     Then I see a "LIST ASSOCIATION RULES(S)" table with a row containing "General", "Contributor", "New,Current,Grace", "Expired,Pending,Cancelled,Deceased","Subscriber"
+
 
 
    Scenario: Edit an Association Rule

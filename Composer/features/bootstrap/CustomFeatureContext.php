@@ -208,6 +208,61 @@ class CustomFeatureContext extends MinkContext {
     /*end private helper method section*/
 
 
+    /**
+     * @Given /^I go to the Civi Member Sync configuration page\.$/
+     */
+    public function iGoToTheCiviMemberSyncConfigurationPage() {
+        $this->VisitPage( "http://localhost:8888/wp_phpstorm/wp-admin/options-general.php?page=civi_member_sync/list.php" );
+    }
+
+    /**
+     * @Given /^I select "([^"]*)" in the "([^"]*)" dropdown$/
+     */
+    public function iSelectInTheDropdown( $dropdown_option, $dropdown_label ) {
+
+        $dropdown_id = '';
+        if ( strpos( $dropdown_label, 'CiviMember Membership Type'  ) !== false ) {
+            $dropdown_id = 'civi_member_type';
+        } elseif ( strpos( $dropdown_label, 'Select a Wordpress Role' ) !== false ) {
+            $dropdown_id = 'wp_role';
+        } elseif ( strpos( $dropdown_label, 'Wordpress Expiry Role' ) !== false ) {
+            $dropdown_id = 'expire_assign_wp_role';
+        }
+
+        $dropdown = $this->session->getPage()->findById( $dropdown_id );
+        $dropdown->selectOption( $dropdown_option );
+
+
+    }
+
+    /**
+     * @Given /^I check "([^"]*)" in "([^"]*)" checkboxes$/
+     */
+    public function iCheckInCheckboxes( $options_list, $list_label ) {
+
+        if ( strpos( $list_label, 'Current Status' ) != false ) {
+            $container      = $this->session->getPage()->findById( 'current-status-td' );
+            $optionElements = $container->findAll( 'css', 'input' );
+        } elseif ( strpos( $list_label, 'Expire Status'  ) != false ) {
+            $container      = $this->session->getPage()->findById( 'expire-status-td' );
+            $optionElements = $container->findAll( 'css', 'input' );
+        }
+
+        $select_items = explode( ',', $options_list );
+
+        if ( isset( $optionElements ) ) {
+            foreach ( $optionElements as $option ) {
+                if ( in_array( $option->label, $select_items ) ) {
+                    $option->check();
+
+                }
+
+            }
+        }
+
+    }
+
+
 }
 
 
