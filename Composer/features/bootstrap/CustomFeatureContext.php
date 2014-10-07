@@ -28,8 +28,8 @@ class CustomFeatureContext extends MinkContext {
 
 //        private $mink;
     function __construct() {
-        $this->getMink(new Mink\Mink());
-        $this->session = new Session(new GoutteDriver());
+        $this->getMink( new Mink\Mink() );
+        $this->session = new Session( new GoutteDriver() );
         $this->session->start();
     }
 
@@ -66,7 +66,6 @@ class CustomFeatureContext extends MinkContext {
     }
 
 
-
     /**
      * @Given /^I see "([^"]*)"$/
      * @param $text
@@ -96,6 +95,57 @@ class CustomFeatureContext extends MinkContext {
 
     }
 
+
+
+    /**
+     * @When /^I activate the Tadpole CiviMember Role Synchronize plugin\.$/
+     */
+    public function iActivateTheTadpoleCiviMemberRoleSynchronizePlugin() {
+
+        $link = $this->session->getPage()->find(
+            'xpath',
+            "//*[@id='tadpole-civimember-role-synchronize']/td[1]/div/span[1]/a"
+        );
+
+
+        $link->click();
+    }
+
+
+    /**
+     * @Given /^The Tadpole CiviMember Role Synchronize plugin is "([^"]*)"$/
+     */
+    public function theTadpoleCiviMemberRoleSynchronizePluginIs( $activated_or_not_activated ) {
+        $link = $this->session->getPage()->find(
+            'xpath',
+            "//*[@id='tadpole-civimember-role-synchronize']/td[1]/div/span[1]/a"
+        );
+        if ( $activated_or_not_activated == "not activated" ) {
+            assertContains( 'Activate', $link->getAttribute( 'title' ) );
+        } else {
+            assertContains( 'Deactivate', $link->getAttribute( 'title' ) );
+        }
+    }
+
+
+    /**
+     * @Given /^I go to the Plugins Admin page$/
+     */
+    public function iGoToThePluginsAdminPage() {
+        $this->VisitPage('http://localhost:8888/wp_phpstorm/wp-admin/plugins.php');
+    }
+
+
+
+    /*private helper methods below*/
+
+    /**
+     * @param $page_url
+     */
+    private function VisitPage( $page_url ) {
+        $this->session->visit( $page_url );
+    }
+
     /**
      * @param $content_string
      *
@@ -104,9 +154,7 @@ class CustomFeatureContext extends MinkContext {
      * @internal param $CiviCrm
      */
     private function ConfirmTextOnPage( $content_string, $page_url ) {
-        // get page content:
-        //$this->session->visit( "http://localhost:8888/wp_phpstorm/wp-admin/plugins.php" );
-        $this->session->visit( $page_url );
+        $this->VisitPage( $page_url );
         $page = $this->session->getPage();
         if ( ! isset( $page ) ) {
             throw new PendingException( "cannot retrieve the page!" );
@@ -115,25 +163,6 @@ class CustomFeatureContext extends MinkContext {
 
         assertContains( $content_string, $page_content );
     }
-
-    /**
-     * @Given /^I activate the Tadpole CiviMember Role Synchronize plugin\.$/
-     */
-    public function iActivateTheTadpoleCiviMemberRoleSynchronizePlugin() {
-        $feature_row = $this->session->getPage()->findById('tadpole-civimember-role-synchronize');
-        $span = $feature_row->find(
-            'xpath',
-            $this->session->getSelectorsHandler()->selectorToXpath('css', 'span.activate') // just changed xpath to css
-        );
-        $link = $span->find(
-            'xpath',
-            $this->session->getSelectorsHandler()->selectorToXpath('css', 'a') // just changed xpath to css
-        );
-
-        $link->click();
-    }
-
-    //#tadpole-civimember-role-synchronize > td.plugin-title > div >  > a
 
 
 }
