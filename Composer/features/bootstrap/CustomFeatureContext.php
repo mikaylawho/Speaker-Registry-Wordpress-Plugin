@@ -55,9 +55,9 @@ class CustomFeatureContext extends MinkContext {
         }
 
         $login_field = $page->findById( 'user_login' );
-        $login_field->setValue( 'phpstorm' );
+        $login_field->setValue( $username );
         $pass_field = $page->findById( 'user_pass' );
-        $pass_field->setValue( 'phpstorm' );
+        $pass_field->setValue( $password );
         $submit = $page->findById( 'wp-submit' );
         $submit->click();
 
@@ -81,8 +81,18 @@ class CustomFeatureContext extends MinkContext {
      */
     public function iClick( $ActivateLink ) {
 
-        include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
-        $this->session->visit( 'http://localhost:8888/wp_phpstorm' . $ActivateLink );
+//        include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+//        $this->session->visit( 'http://localhost:8888/wp_phpstorm' . $ActivateLink );
+//        $link = $this->session->getPage()->find(
+//            'xpath',
+//            "//*[@id='wpbody-content']/div[3]/h2/a[1]"
+//        );
+
+        $link = $this->session->getPage()->FindLink( $ActivateLink );
+
+
+        $link->click();
+
 
     }
 
@@ -94,7 +104,6 @@ class CustomFeatureContext extends MinkContext {
         $this->ConfirmTextOnPage( $CiviCrm, 'http://localhost:8888/wp_phpstorm/wp-admin/plugins.php' );
 
     }
-
 
 
     /**
@@ -132,9 +141,41 @@ class CustomFeatureContext extends MinkContext {
      * @Given /^I go to the Plugins Admin page$/
      */
     public function iGoToThePluginsAdminPage() {
-        $this->VisitPage('http://localhost:8888/wp_phpstorm/wp-admin/plugins.php');
+        $this->VisitPage( 'http://localhost:8888/wp_phpstorm/wp-admin/plugins.php' );
     }
 
+
+    /**
+     * @Given /^I go to civi_user_sync configuration page\.$/
+     */
+    public function iGoToCivi_user_syncConfigurationPage() {
+        $this->VisitPage( "http://localhost:8888/wp_phpstorm/wp-admin/admin.php?page=civi_member_sync/list.php" );
+    }
+
+    /**
+     * @Then /^I see "([^"]*)" element id "([^"]*)" with one or more options\.$/
+     */
+    public function iSeeElementIdWithOneOrMoreOptions( $type, $id ) {
+        $optionElements = array();
+        if ( $type == 'select' ) {
+            $element        = $this->session->getPage()->findById( $id );
+            $optionElements = $element->findAll( 'css', 'option' );
+
+
+        } elseif ( $type == 'checkbox' ) {
+            if ( $id == 'current' ) {
+                $container      = $this->session->getPage()->findById( 'current-status-td' );
+                $optionElements = $container->findAll( 'css', 'input' );
+            } elseif ( $id == 'expire' ) {
+                $container      = $this->session->getPage()->findById( 'expire-status-td' );
+                $optionElements = $container->findAll( 'css', 'input' );
+            }
+
+        }
+
+        assertGreaterThan( 1, count( $optionElements ) );
+
+    }
 
 
     /*private helper methods below*/
@@ -164,8 +205,12 @@ class CustomFeatureContext extends MinkContext {
         assertContains( $content_string, $page_content );
     }
 
+    /*end private helper method section*/
+
 
 }
+
+
 
 
 

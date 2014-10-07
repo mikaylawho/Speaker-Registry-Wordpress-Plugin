@@ -94,7 +94,7 @@ if ( isset( $_GET['q'] ) && $_GET['q'] == "edit" ) {
 							Current Status *
 						</label>
 					</th>
-					<td>
+					<td id="current-status-td">
 						<?php
 						foreach ( CrmSync::getMembershipStatus() as $key => $value ) {
 							?>
@@ -112,7 +112,7 @@ if ( isset( $_GET['q'] ) && $_GET['q'] == "edit" ) {
 							Expire Status *
 						</label>
 					</th>
-					<td>
+					<td id="expire-status-td">
 						<?php
 						foreach ( $MembershipStatus as $key => $value ) {
 							?>
