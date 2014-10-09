@@ -221,7 +221,7 @@ class CustomFeatureContext extends MinkContext {
     public function iSelectInTheDropdown( $dropdown_option, $dropdown_label ) {
 
         $dropdown_id = '';
-        if ( strpos( $dropdown_label, 'CiviMember Membership Type'  ) !== false ) {
+        if ( strpos( $dropdown_label, 'CiviMember Membership Type' ) !== false ) {
             $dropdown_id = 'civi_member_type';
         } elseif ( strpos( $dropdown_label, 'Select a Wordpress Role' ) !== false ) {
             $dropdown_id = 'wp_role';
@@ -229,36 +229,108 @@ class CustomFeatureContext extends MinkContext {
             $dropdown_id = 'expire_assign_wp_role';
         }
 
-        $dropdown = $this->session->getPage()->findById( $dropdown_id );
-        $dropdown->selectOption( $dropdown_option );
+        $value         = '';
+        $dropdown      = $this->session->getPage()->findById( $dropdown_id );
+        $dropdown_list = $dropdown->getParent()->findAll( 'xpath', "select[@id='" . $dropdown_id . "']/option[@value != '']" );
+        //$dropdown->selectOption( $dropdown_option );
 
+        assertGreaterThan( 1, count( $dropdown_list ), 'can not find the dropdown options!' );
 
+        foreach ( $dropdown_list as $item ) {
+            //find which option matches $dropdown_option
+            //get that option
+            if ( $item->getText() == $dropdown_option ) {
+                //get the value for that option
+                //$html = $item->getHtml();
+                $value = $item->getAttribute( 'value' );
+                $dropdown->setValue( $value );
+
+            }
+
+        }
+
+        assertEquals( $dropdown->getValue(), $value, 'The ' . $dropdown_id . ' dropdown was not properly set to ' . $dropdown_option );
     }
+
+
+
+
+
+
 
     /**
      * @Given /^I check "([^"]*)" in "([^"]*)" checkboxes$/
      */
     public function iCheckInCheckboxes( $options_list, $list_label ) {
-
-        if ( strpos( $list_label, 'Current Status' ) != false ) {
-            $container      = $this->session->getPage()->findById( 'current-status-td' );
-            $optionElements = $container->findAll( 'css', 'input' );
-        } elseif ( strpos( $list_label, 'Expire Status'  ) != false ) {
-            $container      = $this->session->getPage()->findById( 'expire-status-td' );
-            $optionElements = $container->findAll( 'css', 'input' );
-        }
-
-        $select_items = explode( ',', $options_list );
-
-        if ( isset( $optionElements ) ) {
-            foreach ( $optionElements as $option ) {
-                if ( in_array( $option->label, $select_items ) ) {
-                    $option->check();
-
-                }
-
+        $select_items   = explode( ',', $options_list );
+        $checkbox_array = array();
+        $labels         = $this->session->getPage()->findAll( 'xpath', '//label' );
+        $counter        = 0;
+        foreach ( $labels as $label ) {
+            if ( in_array( $label->getText(), $select_items ) and strpos( $label->getAttribute( 'for' ), strtolower( $list_label ) ) !== false ) {
+                $checkbox_array[ $counter ] = array( $label->getAttribute( 'for' ), $label->getText() );
+                $counter ++;
             }
         }
+
+        foreach ( $checkbox_array as $checkbox ) {
+            $checkbox_to_check = $this->session->getPage()->findById( $checkbox[0] );
+            if ( ! $checkbox_to_check->isChecked() ) {
+                //this is working on the first "New" in the Current Status list, but failing for all others. No clue why...
+                $checkbox_to_check->check();
+            }
+
+            assertTrue( $checkbox_to_check->isChecked(), 'First check of checkbox ' . $checkbox[1] . ' / id = ' . $checkbox[0] . ' should be checked but it is not.' );
+        }
+
+        //confirm that the appropriate checkboxes are checked
+        foreach ( $checkbox_array as $checkbox ) {
+            $checked_item = $this->session->getPage()->findById( $checkbox[0] );
+            assertTrue( $checked_item->isChecked(), $list_label . 'Second check of checkbox ' . $checkbox[1] . ' / id = ' . $checkbox[0] . ' should be checked but it is not.' );
+        }
+
+    }
+
+    /**
+     * @Given /^I click button "([^"]*)"$/
+     */
+    public function iClickButton( $button_text ) {
+        $button = $this->session->getPage()->find('xpath', '//*/input[@type="submit"]');
+        assert($button->getValue() == $button_text);
+        $button->press();
+
+        $page = $this->session->getCurrentUrl();
+        $response_content = $this->session->getResponseHeaders();
+        $response_string = '';
+        foreach($response_content as $response ){
+            $response_string = $response_string . '  ' . implode($response);
+
+        }
+
+        //check for required field errors on the form
+        $error_span = $this->session->getPage()->find('xpath', '//*[@id="wpbody-content"]/span');
+        assertEmpty($error_span->getText(), 'Failed submitting the new Association Rule form due to failed form field validations: ' . $error_span->getText());
+
+    }
+
+
+    /**
+     * @Then /^I see a table with a row containing "([^"]*)", "([^"]*)", "([^"]*)", "([^"]*)", "([^"]*)"$/
+     */
+    public function iSeeATableWithARowContaining2( $civi_role, $wp_role, $current_list, $expired_list, $wp_expire_role ) {
+        $current_url = $this->session->getCurrentUrl();
+
+        assertContains('list.php', $current_url, 'This is not the CiviCrm Association Rule page! Currently on ' . $current_url );
+
+        $table_rows = $this->session->getPage()->findAll( 'xpath', '//*[@id="the-list"]/tr/[td[1]/text()[contains(., "' . $civi_role . '")]]' );
+
+
+        assertEquals(1,count($table_rows),"The new Association Rule was not found!");
+
+        $row_cells = $this->session->getPage()->findAll( "css", "td" );
+
+        assertContains( $civi_role, $row_cells[1] );
+
 
     }
 

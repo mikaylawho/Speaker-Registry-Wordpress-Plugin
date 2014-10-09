@@ -35,11 +35,11 @@ Feature: As the Wordpress Site administrator, I want to install and configure th
      When I click "Add Association Rule"
      And I select "General" in the "Select a CiviMember Membership Type" dropdown
      And I select "Contributor" in the "Select a Wordpress Role" dropdown
-     And I check "New,Current,Grace" in "Current Status" checkboxes
-     And I check "Expired,Pending,Cancelled,Deceased" in "Expire Status" checkboxes
+     And I check "New,Current,Grace" in "Current" checkboxes
+     And I check "Expired,Pending,Cancelled,Deceased" in "Expire" checkboxes
      And I select "Subscriber" in the "Select a Wordpress Expiry Role" dropdown
      And I click button "Add association rule"
-     Then I see a "LIST ASSOCIATION RULES(S)" table with a row containing "General", "Contributor", "New,Current,Grace", "Expired,Pending,Cancelled,Deceased","Subscriber"
+     Then I see a table with a row containing "General", "Contributor", "New,Current,Grace", "Expired,Pending,Cancelled,Deceased", "Subscriber"
 
 
 
