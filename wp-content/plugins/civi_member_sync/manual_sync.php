@@ -23,19 +23,13 @@ require_once( 'civi.php' );
 require_once( ABSPATH . 'wp-content/plugins/civicrm/civicrm/CRM/Core/BAO/UFMatch.php' );
 
 if ( isset( $_GET['action'] ) ) {
+	$status_message = '';
 	if ( $_GET['action'] == 'confirm' ) {
-
-		CrmSync::civi_member_sync();
-
+		$status_message = CrmSync::civi_member_sync();
 	}
 	?>
 
-	<div id="message" class="updated below-h2">
-			<span><p> CiviMember Memberships and WordPress Roles have been synchronized using available rules. Note: if
-					no association rules exist then synchronization has not been completed.</p></span>
-	</div>
 	<?php
-
 
 	/* NEW FUNCTION: sync civicrm members into wordpress user list */
 	//function import_civicrm_members_to_wordpress() {
@@ -43,14 +37,13 @@ if ( isset( $_GET['action'] ) ) {
 
 	if ( $_GET['action'] == 'import' ) {
 
-		$status_message = CrmSync::import_civi_members_to_wordpress(); ?>
+		$status_message = CrmSync::import_civi_members_to_wordpress();
+	}?>
 
-		<div class="updated below-h2">
-			<span><p> <?php echo $status_message ?> </p></span>
-		</div>
-	<?php
-	}
-}?>
+	<div class="updated below-h2">
+		<span><p> <?php echo $status_message ?> </p></span>
+	</div>
+<?php }?>
 
 
 

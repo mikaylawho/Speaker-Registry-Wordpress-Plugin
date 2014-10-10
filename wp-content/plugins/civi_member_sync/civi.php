@@ -66,6 +66,7 @@ class CrmSync {
 
 
 	static function civi_member_sync() {
+		$status = 'CiviMember Sync Completed. <br>';
 		civicrm_wp_initialize();
 		$users = get_users();
 
@@ -87,14 +88,36 @@ class CrmSync {
 
 				$userData = get_userdata( $uid );
 				if ( ! empty( $userData ) ) {
-					$currentRole = $userData->roles[0];
-					//checking membership status and assign role
-					self::member_check( $cid, $uid, $currentRole );
+					try {
+						$currentRole = $userData->roles[0];
+						if(isset($currentRole)){
+							//checking membership status and assign role
+							self::member_check( $cid, $uid, $currentRole );
+
+							$updatedUserData = get_userdata( $uid );
+							$updatedRole = $updatedUserData->roles[0];
+
+							if($currentRole != $updatedRole) {
+								$status .= $email . ' updated from ' . $currentRole . ' to ' . $updatedRole . '<br>';
+							}
+						}
+						else{
+							//skip the user, they have an invalid role setting
+							$status .= '<strong>' .$email . ' has an invalid role setting. Please update or delete the user manually in the Wordpress users list.</strong></br>';
+
+						}
+
+
+					}catch(Exception $e){
+						$status .= 'Exception when checking the current roles for ' . $email . '. Exception message: ' . $e->getMessage() . '<br>';
+					}
 				}
 
 
 			}
 		}
+
+		return $status;
 	}
 
 	/**
@@ -175,6 +198,7 @@ class CrmSync {
 						$wp_user_object->set_role( "$expired_wp_role" );
 					} else {
 						$wp_user_object->set_role( "" );
+
 					}
 				}
 			}
