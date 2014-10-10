@@ -285,7 +285,7 @@ class CrmSync {
 
 						// Email the user
 						wp_mail( $email, 'Welcome ' . $username . '!', ' Your Password: ' . $password );
-						echo 'Welcome ' . $username . '!', ' Your Password: ' . $password . ' sent to ' . $email . '<br>';
+						//echo 'Welcome ' . $username . '!', ' Your Password: ' . $password . ' sent to ' . $email . '<br>';
 
 						$new_account_count += 1;
 					}
