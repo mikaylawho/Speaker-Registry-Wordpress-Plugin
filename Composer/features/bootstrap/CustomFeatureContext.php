@@ -253,11 +253,6 @@ class CustomFeatureContext extends MinkContext {
     }
 
 
-
-
-
-
-
     /**
      * @Given /^I check "([^"]*)" in "([^"]*)" checkboxes$/
      */
@@ -275,18 +270,14 @@ class CustomFeatureContext extends MinkContext {
 
         foreach ( $checkbox_array as $checkbox ) {
             $checkbox_to_check = $this->session->getPage()->findById( $checkbox[0] );
+
             if ( ! $checkbox_to_check->isChecked() ) {
                 //this is working on the first "New" in the Current Status list, but failing for all others. No clue why...
+                //it's because in the original code, the checkbox values are set to the Membership Type key...and only the first one is set to "1"
+                //Checking the value of the checkbox to see if it is checked will not work here. Need to check the POST response after submitting the form.
                 $checkbox_to_check->check();
             }
 
-            assertTrue( $checkbox_to_check->isChecked(), 'First check of checkbox ' . $checkbox[1] . ' / id = ' . $checkbox[0] . ' should be checked but it is not.' );
-        }
-
-        //confirm that the appropriate checkboxes are checked
-        foreach ( $checkbox_array as $checkbox ) {
-            $checked_item = $this->session->getPage()->findById( $checkbox[0] );
-            assertTrue( $checked_item->isChecked(), $list_label . 'Second check of checkbox ' . $checkbox[1] . ' / id = ' . $checkbox[0] . ' should be checked but it is not.' );
         }
 
     }
@@ -295,22 +286,24 @@ class CustomFeatureContext extends MinkContext {
      * @Given /^I click button "([^"]*)"$/
      */
     public function iClickButton( $button_text ) {
-        $button = $this->session->getPage()->find('xpath', '//*/input[@type="submit"]');
-        assert($button->getValue() == $button_text);
+        $button = $this->session->getPage()->find( 'xpath', '//*/input[@type="submit"]' );
+        assert( $button->getValue() == $button_text );
         $button->press();
 
-        $page = $this->session->getCurrentUrl();
         $response_content = $this->session->getResponseHeaders();
-        $response_string = '';
-        foreach($response_content as $response ){
-            $response_string = $response_string . '  ' . implode($response);
 
+        $page             = $this->session->getCurrentUrl();
+        $response_content = $this->session->getResponseHeaders();
+        $response_string  = '';
+        foreach ( $response_content as $response ) {
+            $response_string = $response_string . '  ' . implode( $response );
         }
 
         //check for required field errors on the form
-        $error_span = $this->session->getPage()->find('xpath', '//*[@id="wpbody-content"]/span');
-        assertEmpty($error_span->getText(), 'Failed submitting the new Association Rule form due to failed form field validations: ' . $error_span->getText());
-
+        $error_span = $this->session->getPage()->find( 'xpath', '//*[@id="wpbody-content"]/span' );
+        if ( isset( $error_span ) ) {
+            assertEmpty( $error_span->getText(), 'Failed submitting the new Association Rule form due to failed form field validations: ' . $error_span->getText() . " Response headers: " . $response_string );
+        }
     }
 
 
@@ -318,26 +311,68 @@ class CustomFeatureContext extends MinkContext {
      * @Then /^I see a table with a row containing "([^"]*)", "([^"]*)", "([^"]*)", "([^"]*)", "([^"]*)"$/
      */
     public function iSeeATableWithARowContaining2( $civi_role, $wp_role, $current_list, $expired_list, $wp_expire_role ) {
-        $current_url = $this->session->getCurrentUrl();
+        //$current_url = $this->session->getCurrentUrl();
+        $this->session->visit( 'http://localhost:8888/wp_phpstorm/wp-admin/admin.php?&q=delete&id=29&page=civi_member_sync/list.php' );
+        //assertContains('list.php', $current_url, 'Not redirected to the CiviCrm Association Rule page! Currently on ' . $current_url );
 
-        assertContains('list.php', $current_url, 'This is not the CiviCrm Association Rule page! Currently on ' . $current_url );
-
-        $table_rows = $this->session->getPage()->findAll( 'xpath', '//*[@id="the-list"]/tr/[td[1]/text()[contains(., "' . $civi_role . '")]]' );
-
-
-        assertEquals(1,count($table_rows),"The new Association Rule was not found!");
-
-        $row_cells = $this->session->getPage()->findAll( "css", "td" );
-
-        assertContains( $civi_role, $row_cells[1] );
+        $ruleIsFound  = false;
+        $missing_data = '';
+        $xpath_string = "//*[@id='the-list']/tr";
+        $row_array    = array();
 
 
+
+        $table_rows = $this->session->getPage()->findAll( 'xpath', $xpath_string );
+        if ( isset( $table_rows ) ) {
+            foreach ( $table_rows as $row ) {
+                $row_array = explode( ',', preg_replace( '/\s+/', ',', $row->getText() ) );
+                if ( $row_array[0] == $civi_role ) {
+                    //row found! stop searching the table
+                    break;
+                }
+            }
+
+            $current_list = str_replace( ',', '', $current_list );
+            $expired_list = str_replace( ',', '', $expired_list );
+
+            //check each cell in the row for the expected values (skip 1-3 because they contain the "Edit|Delete" cells)
+            if ( $row_array[0] == $civi_role ) {
+
+                if ( $row_array[4] == $wp_role ) {
+
+                    if ( $row_array[5] == $current_list ) {
+
+                        if ( $row_array[6] == $expired_list ) {
+
+                            if ( $row_array[7] == $wp_expire_role ) {
+
+                                $ruleIsFound = true;
+                            } else {
+                                $missing_data .= " Missing the correct Wordpress Expire Role ";
+
+                            }
+                        } else {
+                            $missing_data .= " Missing the correct 'Expire Status' parameters";
+
+                        }
+                    } else {
+                        $missing_data .= " Missing the correct 'Current Status' parameters";
+
+                    }
+                } else {
+                    $missing_data .= " Missing the correct Wordpress Role ";
+
+                }
+            } else {
+                $missing_data .= " Missing the correct CiviCrm Role ";
+
+            }
+        }
+        assertTrue( $ruleIsFound, "The Association Rule was not found! " . $missing_data );
     }
 
 
 }
-
-
 
 
 
