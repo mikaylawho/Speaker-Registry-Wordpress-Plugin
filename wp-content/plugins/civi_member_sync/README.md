@@ -1,11 +1,15 @@
 Wordpress CiviMember Role Sync Plugin: 
+
 ----------------------------------------
 
-A common need is to synchronize your CiviCRM members to your WordPress roles to allow you to have, among other things, members' only content on your website that is only accessible to current members defined by the rules and types you have set up in CiviCRM. 
+ A common need is to synchronize your CiviCRM members to your WordPress roles to allow you to have, among other things, members' only content on your website that is only accessible to current members defined by the rules and types you have set up in CiviCRM. 
 
-This is a one way sync -- It syncs from CiviCRM to WordPress.  Users are not sync'd only roles.  WordPress roles will get updated based on CiviCRM memberships.
-
-This plugin has been modified by Tadpole Collective, based on the work done by Jag Kandasamy http://www.orangecreative.net
+ The source code base was cloned from Tadpole Collective https://github.com/tadpolecc/civi_member_sync, based on the work done by Jag Kandasamy http://www.orangecreative.net.
+ 
+ My (mikaylawho) contribution to the codebase has been the addition of CiviMember -> Wordpress User import, refactoring and revision of the original code base for Wordpress 4.0, and Behat/Mink automated acceptance tests. The plugin is currently functional. 
+ 
+ Testing and revision of this project is ongoing.
+ 
 
 Configuring CiviMember Roles Sync Plugin:
 ------------------------------------------
@@ -33,6 +37,13 @@ Note: Only one membership type can synchronize with one WordPress role since a W
 5. The last option that is sometimes necessary is to manually synchronize users. Click on the "Manually Synchronize" in configuration page at 
    http://example.com/wp-admin/admin.php?page=civi_member_sync/list.php  tab to do so. 
    You will likely use this when you initially configure this module to synchronize your existing users.
+   
+6. New - To import memberships from CiviCrm, go to http://example.com/wp-admin/admin.php?&page=civi_member_sync/manual_sync.php and click 
+   "Import CiviMember Members to Wordpress User List." This will pull users from CiviMember that match the Civi Membership Types listed at 
+   http://example.com/wp-admin/admin.php?page=civi_member_sync/list.php. The new wordpress accounts will be associated with the CiviMember's
+   primary email address, and the email alias (before the '@') will be their username. The script will automatically email the user with their
+   username and a Wordpress-generated password. Their initial wordress role will be the default role set for new users in the Wordpress site. 
+   To sync the Wordpress roles with CiviCrm, follow the instructions in step 5 to manually synchronize users. 
    
 Be sure to test this Plugin before using it in Production Environment. Log in as that user to ensure you have been granted the appropriate role. Then take away the membership for this user in their CiviCRM record, log back in as the test user, and make sure you no longer have that role.
 This Plugin is Dependant only on CiviCRM.
