@@ -10,3 +10,7 @@ directly into wp-content/plugins and extract directly. Configuration instruction
 
 The Speaker List (list of user-created speaker objects) is located on the Wordpress site at 
 http://yourdomain.com/kyss_speakers.  
+
+Updates:
+Version 1.0.1: Style updates to improve the display on more recent responsive Wordpress Themes. Also added the sidebar view 
+to the Speaker pages, and pagination (10 per page) on the speaker list and topic search pages.

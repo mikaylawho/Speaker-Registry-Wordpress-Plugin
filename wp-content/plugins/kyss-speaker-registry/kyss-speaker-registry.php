@@ -4,7 +4,7 @@
 Plugin Name: KySS Speaker Registry
 Plugin URI: http://URI_Of_Page_Describing_Plugin_and_Updates
 Description: A plugin to gather, edit, and display information for a Speaker Registry.
-Version: 1.0.0
+Version: 1.0.1
 Author: Mikel Hensley
 Author URI: http://mikelhensley.info
 License: GPL2

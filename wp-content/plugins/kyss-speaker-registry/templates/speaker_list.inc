@@ -2,6 +2,7 @@
 defined('ABSPATH') or die("No script kiddies please!");
 
 
+
 $speakers_abc = get_posts($args); //$args comes from the template that calls the include file
 ?>
 
@@ -29,9 +30,9 @@ $speakers_abc = get_posts($args); //$args comes from the template that calls the
 
 <?php
 	foreach( $speakers_abc as $post ) :	setup_postdata($post); ?>
-	<div class="kyss_speaker_search_result">
-		<ul>
-			<li style="display:inline-block;list-style-type: none;padding-right:10px;vertical-align: bottom">
+	<div class="kyss_speaker_search_result" >
+		<ul class="entry">
+			<li style="display:inline-block;list-style-type: none;padding-right:10px;vertical-align: middle">
 				<?php
 				if ( has_post_thumbnail() ) { // check if the post has a Post Thumbnail assigned to it.
 					the_post_thumbnail( 'thumbnail', array('style' => 'float:left;') );
@@ -52,4 +53,10 @@ $speakers_abc = get_posts($args); //$args comes from the template that calls the
 
 		</ul>
 	</div>
-<?php  endforeach; ?>
+<?php
+	endforeach;
+	wp_reset_postdata();
+?>
+<div class="nav-next alignright"><?php previous_posts_link( 'Next Page' ); ?></div>
+<div class="nav-previous alignleft"><?php next_posts_link( 'Previous Page' ); ?></div>
+
