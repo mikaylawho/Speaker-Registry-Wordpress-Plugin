@@ -24,11 +24,16 @@ $speakers_abc = get_posts($args); //$args comes from the template that calls the
 		padding-top:10px;
 	}
 
+	div.page-numbers{
+		margin-top:30px;
+		margin-left:100px;
+	}
+
 
 </style>
 
 
-<?php
+<?php paginate();
 	foreach( $speakers_abc as $post ) :	setup_postdata($post); ?>
 	<div class="kyss_speaker_search_result" >
 		<ul class="entry">
@@ -57,6 +62,29 @@ $speakers_abc = get_posts($args); //$args comes from the template that calls the
 	endforeach;
 	wp_reset_postdata();
 ?>
-<div class="nav-next alignright"><?php previous_posts_link( 'Next Page' ); ?></div>
-<div class="nav-previous alignleft"><?php next_posts_link( 'Previous Page' ); ?></div>
+<?php
+function paginate() {
+	global $wp_query, $wp_rewrite;
+	$wp_query->query_vars['paged'] > 1 ? $current = $wp_query->query_vars['paged'] : $current = 1;
+	$pagination = array(
+		'base'     => @add_query_arg( 'page', '%#%' ),
+		'format'   => '',
+		'total'    => $wp_query->max_num_pages,
+		'current'  => $current,
+		'show_all' => false,
+		'end_size' => 0,
+		'mid_size' => 0,
+		'type'     => 'list'
+	);
+	if ( $wp_rewrite->using_permalinks() ) {
+		$pagination['base'] = user_trailingslashit( trailingslashit( remove_query_arg( 's', get_pagenum_link( 1 ) ) ) . 'page/%#%/', 'paged' );
+	}
+	if ( ! empty( $wp_query->query_vars['s'] ) ) {
+		$pagination['add_args'] = array( 's' => get_query_var( 's' ) );
+	}
 
+	$links = paginate_links();
+	echo '<div class="page-numbers">' . $links . '</div>';
+}
+paginate();
+?>
