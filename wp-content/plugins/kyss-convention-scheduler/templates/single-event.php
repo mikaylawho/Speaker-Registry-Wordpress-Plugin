@@ -69,13 +69,12 @@ get_header(); ?>
 </style>
 
 	<div id="primary" class="site-content">
-		<div id="wrap" class="clearfix">
-
+		<div id="content" role="main">
 			<div id="kyss_speaker_div" class="kyss_speaker_div">
 
 				<?php while ( have_posts() ) : the_post() ?>
 
-					<section id="content" class="primary" role="main">
+				<section>
 					<article>
 						<header class="kyss_header">
 							<?php
@@ -83,20 +82,41 @@ get_header(); ?>
 								the_post_thumbnail( 'thumbnail', array( 'class' => 'alignleft' ) );
 							}
 							?>
-							<h2 class="post-title"><?php the_title();?></h2>
-							<form action="<?php echo get_option( 'kyss_speaker_contact_form_url' ) ?>" method="get">
-								<input name="current_speaker" type="hidden" value="<?php echo get_the_title(); ?>">
-								<input class="entry" value="Request This Speaker" type="submit" width="100px">
-							</form>
-							<input class="entry" value="View All Speakers" type="button" width="100px" onclick="redirectSpeakerList();">
+							<h1><?php the_title();?></h1>
+							<input value="View All Events" type="button" width="100px" onclick="redirectSpeakerList();">
 						</header>
 							<div class="kyss_speaker_info">
 
-								<ul class="kyss_page entry">
-									<li class="kyss_label"><h3 class="entry">Speaker Topics</h3></li>
-									<li class="kyss_info"><?php the_terms( $post->ID, 'topics', '', ', ', ' ' ); ?></li>
-									<li class="kyss_label"><h3 class="entry">Speaker Bio</h3></li>
+								<ul class="kyss_page">
+									<li class="kyss_label"><h3>Event Details</h3></li>
 									<li class="kyss_info"><?php the_content(); ?></li>
+									<li><?php
+
+
+
+										function get_post_meta_all($post_id) {
+											global $wpdb;
+
+											$data = array();
+
+											$wpdb->query( "
+											        SELECT 'meta_key', 'meta_value'
+											        FROM $wpdb->postmeta
+											        WHERE 'post_id' = $post_id
+											    " );
+
+											foreach ( $wpdb->last_result as $k => $v ) {
+												$data[ $v->meta_key ] = $v->meta_value;
+											};
+
+											return $data;
+										}
+
+										get_post_meta_all(the_ID());
+
+
+										?></li>
+
 								</ul>
 
 								<!-- TODO: add additional meta fields for YouTube videos, speaker website, etc.-->
@@ -108,7 +128,7 @@ get_header(); ?>
 				<?php endwhile;
 				?>
 			</div>
-			<?php get_sidebar() ?>
+
 
 		</div><!-- #content -->
 	</div><!-- #primary -->
