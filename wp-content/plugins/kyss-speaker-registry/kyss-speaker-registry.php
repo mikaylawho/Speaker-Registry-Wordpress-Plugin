@@ -379,7 +379,12 @@ class MySettingsPage
 			'kyss_speaker_page_settings' // Section
 		);
 
-
+		add_settings_section(
+			'kyss_speaker_additional_info', // ID
+			'Additional Instructions', // Title
+			array( $this, 'print_additional_instructions' ), // Callback
+			'kyss-speaker-settings-admin' // Page
+		);
 
 	}
 
@@ -413,6 +418,12 @@ class MySettingsPage
 	public function print_page_section_info()
 	{
 		print 'Enter the settings for Speaker Registry page displays.';
+	}
+
+	public function print_additional_instructions() {
+		print "There is a current issue with the Speaker Page URL's being broken when the plugin is first installed. Until this is resolved,
+ you can fix the issue by going to the site Permalinks settings and re-saving your permalink selection. All permalink settings EXCEPT
+ 'Default' will work.";
 	}
 
 
